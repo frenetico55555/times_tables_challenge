@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Matriz Tablas de Multiplicar 1-12</title>
+  <style>
+    table { 
+      border-collapse: collapse; 
+      margin: 2em 0; 
+      font-size: 1em;
+      max-width: 100vw;
+      max-height: 80vh;
+      width: auto;
+    }
+    th, td { 
+      border: 1px solid #888; 
+      padding: 0.35em;
+      text-align: center; 
+      width: 48px;
+      height: 29px; /* 36px * 0.8 = 28.8px, redondeado a 29px */
+      box-sizing: border-box;
+    }
+    th { background: #f0f0f0; }
+    .highlight-row th, .highlight-row td { background: #ffe082 !important; }
+    .highlight-col { background: #ffe082 !important; }
+    .highlight-row.red th, .highlight-row.red td,
+    .highlight-col.red { background: #ef9a9a !important; }
+    .highlight-row.green th, .highlight-row.green td,
+    .highlight-col.green { background: #a5d6a7 !important; }
+    input[type="number"].cell-input { 
+      width: 44px;          /* Aumenta el ancho del input */
+      font-size: 1em; 
+      text-align: center; 
+      padding: 0;
+      margin: 0;
+    }
+    #juego-controls { margin: 1em 0; }
+    #stats { margin: 1em 0; font-size: 1.1em; }
+    #stats span { margin-right: 2em; }
+    #start-btn { font-size: 1.1em; padding: 0.5em 1.5em; margin-bottom: 1em; }
+    .oculto { visibility: hidden; }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      background: #fff;
+    }
+    #highscore {
+      transition: color 0.3s, text-shadow 0.3s;
+    }
+    .highscore-flash {
+      color: #d32f2f !important;
+      text-shadow: 0 0 16px #ff5252, 0 0 32px #ff5252;
+      animation: highscore-bounce 1s cubic-bezier(.36,1.5,.64,1) 1;
+    }
+    @keyframes highscore-bounce {
+      0%   { transform: scale(1) translateY(0) rotate(0deg);}
+      10%  { transform: scale(1.25) translateY(-10px) rotate(-5deg);}
+      20%  { transform: scale(1.35) translateY(-20px) rotate(5deg);}
+      30%  { transform: scale(1.25) translateY(-10px) rotate(-5deg);}
+      40%  { transform: scale(1.15) translateY(-5px) rotate(3deg);}
+      50%  { transform: scale(1.1) translateY(-2px) rotate(-2deg);}
+      60%  { transform: scale(1.05) translateY(0) rotate(1deg);}
+      70%  { transform: scale(1.1) translateY(-2px) rotate(-1deg);}
+      80%  { transform: scale(1.05) translateY(0) rotate(0deg);}
+      100% { transform: scale(1) translateY(0) rotate(0deg);}
+    }
+    @media (max-width: 700px) {
+      table { font-size: 0.75em; }
+      th, td { width: 30px; height: 22px; }
+      input[type="number"].cell-input { width: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        alert(
+          'Hello! We created this math game for our kids to help them learn the multiplication tables. They loved it! They started trying to beat their "higher score" in exchange for a prize, and in just one week they knew all the tables, haha. They liked it so much that they shared it with their friends, and several parents asked us for the game, so we uploaded it here. Before publishing it on a pro site, we are asking for suggestions to improve it. If you want to help make this tool better for kids, we would appreciate your feedback by clicking the "Send Suggestions" button below. Thank you very much!'
+        );
+      }, 100);
+    });
+  </script>
+  <h1>Multiplication Tables Game (1 to 12)</h1>
+  <div id="juego-controls">
+    <div style="margin-bottom: 1em;">
+      <label for="nombre-jugador" style="font-weight:bold;">Name:</label>
+      <input type="text" id="nombre-jugador" style="font-size:1em; width: 180px;" placeholder="Your name..." autocomplete="off">
+    </div>
+    <button id="start-btn" onclick="iniciarJuego()">Start</button>
+    <button id="reset-btn" onclick="reiniciarJuego()" style="margin-left:1em;">Reset timer</button>
+    <button id="screenshot-btn" style="margin-left:1em;">Take screenshot</button>
+    <a href="https://forms.gle/AvHgLfGM7LdmSfbt6" target="_blank" rel="noopener" style="margin-left:1em; text-decoration:none;">
+      <button type="button">Send suggestions</button>
+    </a>
+    <div id="stats">
+      <span id="cronometro">Total time: 00:00</span>
+      <span id="ultimo-tiempo">Last challenge: -- s</span>
+      <span id="promedio-tiempo">Average: -- s</span>
+      <span id="porcentaje-correctas">Last 10: -- % correct</span>
+      <span id="score">Score: --</span>
+      <span id="highscore">Higher Score: --</span>
+    </div>
+    <span id="feedback"></span>
+  </div>
+  <table id="matriz">
+    <thead>
+      <tr>
+        <th></th>
+        <!-- Encabezados de columna -->
+        <script>
+          for(let i=1; i<=12; i++) {
+            document.write('<th>' + i + '</th>');
+          }
+        </script>
+      </tr>
+    </thead>
+    <tbody>
+      <script>
+        for(let i=1; i<=12; i++) {
+          document.write('<tr>');
+          document.write('<th>' + i + '</th>');
+          for(let j=1; j<=12; j++) {
+            document.write('<td data-row="'+i+'" data-col="'+j+'"></td>');
+          }
+          document.write('</tr>');
+        }
+      </script>
+    </tbody>
+  </table>
+  <script>
+    let filaActual = null, colActual = null, esperando = false;
+    let timeoutReto = null;
+    let tiempoInicio = null;
+    let tiempos = [];
+    let resultados = [];
+    let juegoIniciado = false;
+
+    // Matriz de errores: erroresPorCelda[i][j] = cantidad de errores en celda (i+1, j+1)
+    let erroresPorCelda = Array.from({length:12}, () => Array(12).fill(0));
+    let highScore = null;
+    let jugador = "";
+
+    // Cronómetro digital
+    let cronometroInterval = null;
+    let tiempoInicioCronometro = null;
+
+    // Actualiza el nombre del jugador en variable global
+    document.getElementById('nombre-jugador').addEventListener('input', function() {
+      jugador = this.value.trim();
+    });
+
+    function iniciarCronometro() {
+      tiempoInicioCronometro = Date.now();
+      actualizarCronometro();
+      if (cronometroInterval) clearInterval(cronometroInterval);
+      cronometroInterval = setInterval(actualizarCronometro, 1000);
+    }
+
+    function detenerCronometro() {
+      if (cronometroInterval) {
+        clearInterval(cronometroInterval);
+        cronometroInterval = null;
+      }
+    }
+
+    function actualizarCronometro() {
+      if (!tiempoInicioCronometro) {
+        document.getElementById('cronometro').textContent = "Total time: 00:00";
+        return;
+      }
+      let ahora = Date.now();
+      let diff = Math.floor((ahora - tiempoInicioCronometro) / 1000);
+      let min = Math.floor(diff / 60);
+      let seg = diff % 60;
+      document.getElementById('cronometro').textContent = `Total time: ${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
+    }
+
+    function limpiarMatriz() {
+      document.querySelectorAll('#matriz td').forEach(td => {
+        td.className = '';
+        td.textContent = '';
+      });
+      document.querySelectorAll('#matriz tr').forEach(tr => {
+        tr.classList.remove('highlight-row', 'red', 'green');
+      });
+      document.querySelectorAll('#matriz th').forEach(th => {
+        th.classList.remove('highlight-col', 'red', 'green');
+      });
+    }
+
+    function ocultarCruz() {
+      // Quita cualquier highlight de fila/columna
+      document.querySelectorAll('#matriz tr').forEach(tr => {
+        tr.classList.remove('highlight-row', 'red', 'green');
+      });
+      document.querySelectorAll('#matriz th').forEach(th => {
+        th.classList.remove('highlight-col', 'red', 'green');
+      });
+      document.querySelectorAll('#matriz td').forEach(td => {
+        td.classList.remove('highlight-col', 'red', 'green');
+      });
+    }
+
+    function resaltaCruz(color) {
+      // Resalta fila
+      document.querySelectorAll('#matriz tbody tr').forEach((tr, idx) => {
+        if (idx === filaActual - 1) {
+          tr.classList.remove('red', 'green');
+          tr.classList.add(color);
+        }
+      });
+      // Resalta columna (encabezado)
+      document.querySelectorAll('#matriz thead th').forEach((th, idx) => {
+        if (idx === colActual) {
+          th.classList.remove('red', 'green');
+          th.classList.add(color);
+        }
+      });
+      // Resalta columna (todas las celdas)
+      document.querySelectorAll('#matriz tbody tr').forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        if (tds.length >= colActual) {
+          tds[colActual - 1].classList.remove('red', 'green');
+          tds[colActual - 1].classList.add(color);
+        }
+      });
+    }
+
+    function actualizarStats(ultimoTiempo = null) {
+      // Solo últimos 10 intentos
+      const ultimosResultados = resultados.slice(-10);
+      const ultimosTiempos = tiempos.slice(-10);
+
+      // Promedio de tiempos últimos 10
+      let prom = null;
+      if (ultimosTiempos.length > 0) {
+        const suma = ultimosTiempos.reduce((a, b) => a + b, 0);
+        prom = suma / ultimosTiempos.length;
+        document.getElementById('promedio-tiempo').textContent = `Average: ${prom.toFixed(2)} s`;
+      } else {
+        document.getElementById('promedio-tiempo').textContent = `Average: -- s`;
+      }
+      // Último reto
+      if (ultimoTiempo !== null) {
+        document.getElementById('ultimo-tiempo').textContent = `Last challenge: ${ultimoTiempo.toFixed(2)} s`;
+      } else if (ultimosTiempos.length > 0) {
+        document.getElementById('ultimo-tiempo').textContent = `Last challenge: ${ultimosTiempos[ultimosTiempos.length-1].toFixed(2)} s`;
+      } else {
+        document.getElementById('ultimo-tiempo').textContent = `Last challenge: -- s`;
+      }
+      // % correctas últimos 10
+      let porcentaje = null;
+      if (ultimosResultados.length > 0) {
+        const correctas = ultimosResultados.filter(x => x).length;
+        porcentaje = correctas / ultimosResultados.length;
+        document.getElementById('porcentaje-correctas').textContent = `Last 10: ${(porcentaje*100).toFixed(0)}% correct`;
+      } else {
+        document.getElementById('porcentaje-correctas').textContent = `Last 10: -- % correct`;
+      }
+      // Score
+      let scoreText = "Score: --";
+      let score = null;
+      if (porcentaje !== null && prom !== null && prom > 0) {
+        score = (porcentaje / prom) * 100;
+        scoreText = `Score: ${score.toFixed(1)}`;
+      }
+      document.getElementById('score').textContent = scoreText;
+
+      // Higher Score solo si hay al menos 10 retos
+      const highscoreElem = document.getElementById('highscore');
+      if (resultados.length >= 10 && tiempos.length >= 10 && score !== null) {
+        let highscorePrevio = highScore;
+        if (highScore === null || score > highScore) {
+          highScore = score;
+          // Efecto visual: rojo, titilar, saltar y resplandor
+          highscoreElem.classList.remove('highscore-flash'); // reset animation
+          void highscoreElem.offsetWidth; // force reflow
+          highscoreElem.classList.add('highscore-flash');
+          setTimeout(() => {
+            highscoreElem.classList.remove('highscore-flash');
+          }, 1000);
+        }
+        highscoreElem.textContent = `Higher Score: ${highScore.toFixed(1)}`;
+      } else {
+        highScore = null;
+        highscoreElem.textContent = "Higher Score: --";
+        highscoreElem.classList.remove('highscore-flash');
+      }
+    }
+
+    function iniciarJuego() {
+      document.getElementById('start-btn').style.display = 'none';
+      juegoIniciado = true;
+      iniciarCronometro();
+      nuevoReto();
+    }
+
+    function elegirCeldaPorErrores() {
+      // Calcula errores por fila y por columna
+      let erroresFila = Array(12).fill(0);
+      let erroresCol = Array(12).fill(0);
+      for (let i = 0; i < 12; i++) {
+        for (let j = 0; j < 12; j++) {
+          erroresFila[i] += erroresPorCelda[i][j];
+          erroresCol[j] += erroresPorCelda[i][j];
+        }
+      }
+      // Construye un array de pesos multiplicativos (erroresFila[i]+1)*(erroresCol[j]+1)
+      let pesos = [];
+      for (let i = 0; i < 12; i++) {
+        for (let j = 0; j < 12; j++) {
+          pesos.push((erroresFila[i] + 1) * (erroresCol[j] + 1));
+        }
+      }
+      // Suma total de pesos
+      let total = pesos.reduce((a, b) => a + b, 0);
+      // Elige un número aleatorio entre 0 y total
+      let r = Math.random() * total;
+      let acumulado = 0;
+      for (let idx = 0; idx < pesos.length; idx++) {
+        acumulado += pesos[idx];
+        if (r < acumulado) {
+          let i = Math.floor(idx / 12);
+          let j = idx % 12;
+          return [i + 1, j + 1];
+        }
+      }
+      // Fallback (no debería ocurrir)
+      return [Math.floor(Math.random() * 12) + 1, Math.floor(Math.random() * 12) + 1];
+    }
+
+    // Variables para la secuencia de repetición especial
+    let repeticionActiva = false;
+    let secuenciaRepeticion = [];
+    let indiceSecuencia = 0;
+    let celdaProblematica = null;
+
+    function generarSecuenciaRepeticion(fila, col) {
+      // Genera 10 celdas aleatorias de filas/columnas <= 4, distintas entre sí y distintas de la celda problemática
+      let posibles = [];
+      for (let i = 1; i <= 4; i++) {
+        for (let j = 1; j <= 4; j++) {
+          if (!(i === fila && j === col)) {
+            posibles.push([i, j]);
+          }
+        }
+      }
+      // Mezcla y toma 10 distintas
+      for (let i = posibles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [posibles[i], posibles[j]] = [posibles[j], posibles[i]];
+      }
+      let intercaladas = posibles.slice(0, 10);
+      // Patrón:
+      // Celda problemática
+      // Intercalada 1
+      // Celda problemática
+      // Intercalada 2
+      // Intercalada 3
+      // Celda problemática
+      // Intercalada 4
+      // Intercalada 5
+      // Intercalada 6
+      // Celda problemática
+      // Intercalada 7
+      // Intercalada 8
+      // Intercalada 9
+      // Intercalada 10
+      // Celda problemática
+      let secuencia = [];
+      secuencia.push([fila, col]);
+      secuencia.push(intercaladas[0]);
+      secuencia.push([fila, col]);
+      secuencia.push(intercaladas[1]);
+      secuencia.push(intercaladas[2]);
+      secuencia.push([fila, col]);
+      secuencia.push(intercaladas[3]);
+      secuencia.push(intercaladas[4]);
+      secuencia.push(intercaladas[5]);
+      secuencia.push([fila, col]);
+      secuencia.push(intercaladas[6]);
+      secuencia.push(intercaladas[7]);
+      secuencia.push(intercaladas[8]);
+      secuencia.push(intercaladas[9]);
+      secuencia.push([fila, col]);
+      return secuencia;
+    }
+
+    function activarRepeticion(fila, col) {
+      repeticionActiva = true;
+      celdaProblematica = [fila, col];
+      secuenciaRepeticion = generarSecuenciaRepeticion(fila, col);
+      indiceSecuencia = 0;
+    }
+
+    function siguienteCeldaRepeticion() {
+      if (indiceSecuencia < secuenciaRepeticion.length) {
+        let [f, c] = secuenciaRepeticion[indiceSecuencia];
+        indiceSecuencia++;
+        return [f, c];
+      } else {
+        repeticionActiva = false;
+        secuenciaRepeticion = [];
+        indiceSecuencia = 0;
+        celdaProblematica = null;
+        return null;
+      }
+    }
+
+    function nuevoReto() {
+      if (!juegoIniciado) {
+        limpiarMatriz();
+        ocultarCruz();
+        return;
+      }
+      if (timeoutReto) {
+        clearTimeout(timeoutReto);
+        timeoutReto = null;
+      }
+      limpiarMatriz();
+
+      // Selección de celda según regla de repetición o normal
+      let celda;
+      if (repeticionActiva) {
+        celda = siguienteCeldaRepeticion();
+        if (!celda) {
+          // Termina la secuencia especial, vuelve a la regla normal
+          [filaActual, colActual] = elegirCeldaPorErrores();
+        } else {
+          [filaActual, colActual] = celda;
+        }
+      }
+      if (!repeticionActiva) {
+        [filaActual, colActual] = elegirCeldaPorErrores();
+      }
+
+      // Resalta fila
+      document.querySelectorAll('#matriz tbody tr').forEach((tr, idx) => {
+        if (idx === filaActual - 1) tr.classList.add('highlight-row');
+      });
+      // Resalta columna (todas las celdas de la columna)
+      document.querySelectorAll('#matriz thead th').forEach((th, idx) => {
+        if (idx === colActual) th.classList.add('highlight-col');
+      });
+      document.querySelectorAll('#matriz tbody tr').forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        if (tds.length >= colActual) {
+          tds[colActual - 1].classList.add('highlight-col');
+        }
+      });
+      let celdaElem = document.querySelector('#matriz td[data-row="'+filaActual+'"][data-col="'+colActual+'"]');
+      if (celdaElem) {
+        celdaElem.classList.add('target');
+        celdaElem.innerHTML = '<input type="number" class="cell-input" id="cell-input" autocomplete="off">';
+        document.getElementById('feedback').textContent = '';
+        esperando = true;
+        tiempoInicio = Date.now();
+        setTimeout(() => {
+          document.getElementById('cell-input').focus();
+        }, 50);
+        document.getElementById('cell-input').onkeydown = function(e) {
+          if (e.key === 'Enter') {
+            verificarRespuesta();
+          }
+        };
+      }
+    }
+
+    function verificarRespuesta() {
+      if (!esperando) return;
+      const input = document.getElementById('cell-input');
+      if (!input) return;
+      const valor = parseInt(input.value, 10);
+      const correcto = filaActual * colActual;
+      let celda = document.querySelector('#matriz td[data-row="'+filaActual+'"][data-col="'+colActual+'"]');
+      if (!celda) return;
+      let tiempoRespuesta = tiempoInicio ? (Date.now() - tiempoInicio) / 1000 : null;
+      if (tiempoRespuesta !== null) {
+        tiempos.push(tiempoRespuesta);
+        if (tiempos.length > 10) tiempos.shift();
+      }
+
+      // --- Nueva lógica de repetición ---
+      let activarSecuencia = false;
+      if (valor !== correcto || (tiempoRespuesta !== null && tiempoRespuesta > 6)) {
+        activarSecuencia = true;
+      }
+
+      if (valor === correcto) {
+        celda.innerHTML = correcto;
+        celda.classList.remove('target');
+        celda.classList.add('correct');
+        document.getElementById('feedback').textContent = 'Correct!';
+        resaltaCruz('green');
+        resultados.push(true);
+        if (resultados.length > 10) resultados.shift();
+        actualizarStats(tiempoRespuesta);
+        esperando = false;
+        timeoutReto = setTimeout(nuevoReto, 1000);
+      } else {
+        celda.innerHTML = valor || '';
+        celda.classList.remove('target');
+        celda.classList.add('incorrect');
+        document.getElementById('feedback').textContent = '';
+        resaltaCruz('red');
+        resultados.push(false);
+        if (resultados.length > 10) resultados.shift();
+        erroresPorCelda[filaActual-1][colActual-1]++;
+        actualizarStats(tiempoRespuesta);
+        esperando = false;
+        mostrarModalIncorrecto(`Incorrect, it was ${correcto}`);
+        timeoutReto = setTimeout(nuevoReto, 1000);
+      }
+
+      // Si corresponde, activa la secuencia de repetición (esto sobreescribe cualquier secuencia previa)
+      if (activarSecuencia) {
+        activarRepeticion(filaActual, colActual);
+      }
+    }
+
+    // Modal simple para mostrar el error
+    function mostrarModalIncorrecto(mensaje) {
+      let modal = document.createElement('div');
+      modal.id = 'modal-incorrecto';
+      modal.style.position = 'fixed';
+      modal.style.top = '0';
+      modal.style.left = '0';
+      modal.style.width = '100vw';
+      modal.style.height = '100vh';
+      modal.style.background = 'rgba(0,0,0,0.3)';
+      modal.style.display = 'flex';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      modal.style.zIndex = '9999';
+      modal.innerHTML = `<div style="background:white;padding:2em 3em;border-radius:10px;font-size:1.5em;color:#b71c1c;box-shadow:0 2px 16px #0003;">${mensaje}</div>`;
+      document.body.appendChild(modal);
+      setTimeout(() => {
+        if (modal.parentNode) modal.parentNode.removeChild(modal);
+      }, 1000);
+    }
+
+    function reiniciarJuego() {
+      detenerCronometro();
+      // Reinicia todas las variables de estado
+      filaActual = null;
+      colActual = null;
+      esperando = false;
+      timeoutReto = null;
+      tiempoInicio = null;
+      tiempos = [];
+      resultados = [];
+      juegoIniciado = false;
+      erroresPorCelda = Array.from({length:12}, () => Array(12).fill(0));
+      highScore = null;
+      // Limpia la interfaz
+      document.getElementById('start-btn').style.display = '';
+      document.getElementById('cronometro').textContent = "Total time: 00:00";
+      document.getElementById('ultimo-tiempo').textContent = "Last challenge: -- s";
+      document.getElementById('feedback').textContent = "";
+      document.getElementById('score').textContent = "Score: --";
+      document.getElementById('highscore').textContent = "Higher Score: --";
+      document.getElementById('promedio-tiempo').textContent = "Average: -- s";
+      document.getElementById('porcentaje-correctas').textContent = "Last 10: -- % correct";
+      limpiarMatriz();
+      ocultarCruz();
+    }
+
+    // Al cargar, oculta la cruz y muestra el botón de inicio
+    window.onload = function() {
+      actualizarStats();
+      juegoIniciado = false;
+      document.getElementById('start-btn').style.display = '';
+      limpiarMatriz();
+      ocultarCruz();
+      detenerCronometro();
+      document.getElementById('cronometro').textContent = "Total time: 00:00";
+      document.getElementById('ultimo-tiempo').textContent = "Last challenge: -- s";
+      // Make sure the reset button is visible on load
+      document.getElementById('reset-btn').style.display = '';
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script>
+    document.getElementById('screenshot-btn').onclick = function() {
+      // Selecciona el área que quieres capturar (puedes ajustar el selector)
+      const area = document.getElementById('juego-controls');
+      if (typeof html2canvas !== "function" && typeof html2canvas !== "object") {
+        alert('No se pudo cargar html2canvas. Intenta recargar la página.');
+        return;
+      }
+      html2canvas(area).then(canvas => {
+        // Crea un enlace para descargar la imagen
+        const link = document.createElement('a');
+        link.download = 'pantallazo_score.png';
+        link.href = canvas.toDataURL();
+        link.click();
+        // Opcional: muestra un mensaje
+        alert('Screenshot saved! You can send it to your parent and ask for your prize :D');
+      }).catch(err => {
+        alert('An error occurred while generating the screenshot.');
+        console.error(err);
+      });
+    };
+  </script>
+</body>
+</html>
