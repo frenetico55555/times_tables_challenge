@@ -482,6 +482,82 @@
       }
     }
     
+    /* Mobile Challenge Display */
+    #mobile-challenge {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 40px 20px;
+      border-radius: 30px;
+      box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+      margin: 20px auto;
+      max-width: 95vw;
+      min-height: 400px;
+    }
+    
+    #mobile-challenge-question {
+      font-size: 4em;
+      font-weight: 700;
+      color: white;
+      text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+      margin-bottom: 30px;
+      font-family: 'Fredoka One', cursive;
+      text-align: center;
+    }
+    
+    #mobile-challenge-input {
+      width: 200px;
+      height: 100px;
+      font-size: 3.5em;
+      text-align: center;
+      border: 5px solid #f093fb;
+      border-radius: 20px;
+      font-weight: 700;
+      color: #667eea;
+      background: white;
+      font-family: 'Quicksand', sans-serif;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    
+    #mobile-challenge-input:focus {
+      outline: none;
+      border-color: #ffeaa7;
+      box-shadow: 0 0 30px rgba(255, 234, 167, 0.8);
+      transform: scale(1.02);
+    }
+    
+    #mobile-challenge-submit {
+      padding: 20px 50px;
+      font-size: 1.8em;
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(56, 239, 125, 0.5);
+      font-family: 'Quicksand', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    #mobile-challenge-submit:active {
+      transform: scale(0.95);
+    }
+    
+    #mobile-feedback {
+      font-size: 2em;
+      font-weight: 700;
+      margin-top: 20px;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      text-align: center;
+      min-height: 40px;
+    }
+    
     @media (max-width: 700px) {
       h1 { font-size: clamp(1.3em, 5vw, 1.8em); }
       
@@ -490,21 +566,14 @@
         gap: 1vh;
       }
       
+      /* Hide the full table on mobile */
       table { 
-        font-size: clamp(0.6em, 2vw, 0.75em);
-        max-width: 98vw;
+        display: none;
       }
       
-      th, td { 
-        width: clamp(22px, 6vw, 30px); 
-        height: clamp(18px, 5vw, 22px); 
-        padding: clamp(0.15em, 0.3vw, 0.25em);
-      }
-      
-      input[type="number"].cell-input { 
-        width: 85%;
-        max-width: 26px;
-        font-size: clamp(0.8em, 1.5vw, 0.9em);
+      /* Show mobile challenge display */
+      #mobile-challenge {
+        display: flex;
       }
       
       button { 
@@ -590,6 +659,14 @@
     
     <!-- Right Panel: Game Table -->
     <div id="right-panel">
+  <!-- Mobile Challenge Display -->
+  <div id="mobile-challenge">
+    <div id="mobile-challenge-question">? × ? = ?</div>
+    <input type="number" id="mobile-challenge-input" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
+    <button id="mobile-challenge-submit" onclick="verificarRespuestaMobile()">✓ Submit</button>
+    <div id="mobile-feedback"></div>
+  </div>
+  
   <table id="matriz">
     <thead>
       <tr>
@@ -897,10 +974,101 @@
       }
     }
 
+    // Mobile Challenge Functions
+    function updateMobileChallenge() {
+      const questionElem = document.getElementById('mobile-challenge-question');
+      const inputElem = document.getElementById('mobile-challenge-input');
+      const feedbackElem = document.getElementById('mobile-feedback');
+      
+      if (!juegoIniciado || filaActual === null || colActual === null) {
+        if (questionElem) questionElem.textContent = '? × ? = ?';
+        if (inputElem) inputElem.value = '';
+        if (feedbackElem) feedbackElem.textContent = '';
+        return;
+      }
+      
+      if (questionElem) {
+        questionElem.textContent = `${filaActual} × ${colActual} = ?`;
+      }
+      if (inputElem) {
+        inputElem.value = '';
+        setTimeout(() => inputElem.focus(), 100);
+      }
+      if (feedbackElem) {
+        feedbackElem.textContent = '';
+      }
+    }
+
+    function verificarRespuestaMobile() {
+      if (!esperando) return;
+      const input = document.getElementById('mobile-challenge-input');
+      if (!input) return;
+      const valor = parseInt(input.value, 10);
+      
+      // Call the main verification logic
+      verificarRespuestaCommon(valor);
+    }
+
+    function verificarRespuestaCommon(valor) {
+      if (!esperando) return;
+      const correcto = filaActual * colActual;
+      let celda = document.querySelector('#matriz td[data-row="'+filaActual+'"][data-col="'+colActual+'"]');
+      
+      let tiempoRespuesta = tiempoInicio ? (Date.now() - tiempoInicio) / 1000 : null;
+      if (tiempoRespuesta !== null) {
+        tiempos.push(tiempoRespuesta);
+        if (tiempos.length > 10) tiempos.shift();
+      }
+
+      // --- Nueva lógica de repetición ---
+      let activarSecuencia = false;
+      if (valor !== correcto || (tiempoRespuesta !== null && tiempoRespuesta > 6)) {
+        activarSecuencia = true;
+      }
+
+      if (valor === correcto) {
+        if (celda) {
+          celda.innerHTML = correcto;
+          celda.classList.remove('target');
+          celda.classList.add('correct');
+        }
+        document.getElementById('feedback').textContent = '🎉 Correct! Well done!';
+        document.getElementById('mobile-feedback').textContent = '🎉 Correct! Well done!';
+        resaltaCruz('green');
+        resultados.push(true);
+        if (resultados.length > 10) resultados.shift();
+        actualizarStats(tiempoRespuesta);
+        esperando = false;
+        timeoutReto = setTimeout(nuevoReto, 1000);
+      } else {
+        if (celda) {
+          celda.innerHTML = valor || '';
+          celda.classList.remove('target');
+          celda.classList.add('incorrect');
+        }
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('mobile-feedback').textContent = `❌ Incorrect, it was ${correcto}`;
+        resaltaCruz('red');
+        resultados.push(false);
+        if (resultados.length > 10) resultados.shift();
+        erroresPorCelda[filaActual-1][colActual-1]++;
+        actualizarStats(tiempoRespuesta);
+        esperando = false;
+        mostrarModalIncorrecto(`Incorrect, it was ${correcto}`);
+        timeoutReto = setTimeout(nuevoReto, 2000);
+      }
+
+      // Si corresponde, activa la secuencia de repetición (esto sobreescribe cualquier secuencia previa)
+      if (activarSecuencia) {
+        activarRepeticion(filaActual, colActual);
+      }
+    }
+
     function nuevoReto() {
       if (!juegoIniciado) {
         limpiarMatriz();
         ocultarCruz();
+        updateMobileChallenge();
         return;
       }
       if (timeoutReto) {
@@ -924,6 +1092,9 @@
         [filaActual, colActual] = elegirCeldaPorErrores();
       }
 
+      // Update mobile challenge display
+      updateMobileChallenge();
+
       // Resalta fila
       document.querySelectorAll('#matriz tbody tr').forEach((tr, idx) => {
         if (idx === filaActual - 1) tr.classList.add('highlight-row');
@@ -946,13 +1117,17 @@
         esperando = true;
         tiempoInicio = Date.now();
         setTimeout(() => {
-          document.getElementById('cell-input').focus();
+          const cellInput = document.getElementById('cell-input');
+          if (cellInput) cellInput.focus();
         }, 50);
-        document.getElementById('cell-input').onkeydown = function(e) {
-          if (e.key === 'Enter') {
-            verificarRespuesta();
-          }
-        };
+        const cellInputHandler = document.getElementById('cell-input');
+        if (cellInputHandler) {
+          cellInputHandler.onkeydown = function(e) {
+            if (e.key === 'Enter') {
+              verificarRespuesta();
+            }
+          };
+        }
       }
     }
 
@@ -961,51 +1136,9 @@
       const input = document.getElementById('cell-input');
       if (!input) return;
       const valor = parseInt(input.value, 10);
-      const correcto = filaActual * colActual;
-      let celda = document.querySelector('#matriz td[data-row="'+filaActual+'"][data-col="'+colActual+'"]');
-      if (!celda) return;
-      let tiempoRespuesta = tiempoInicio ? (Date.now() - tiempoInicio) / 1000 : null;
-      if (tiempoRespuesta !== null) {
-        tiempos.push(tiempoRespuesta);
-        if (tiempos.length > 10) tiempos.shift();
-      }
-
-      // --- Nueva lógica de repetición ---
-      let activarSecuencia = false;
-      if (valor !== correcto || (tiempoRespuesta !== null && tiempoRespuesta > 6)) {
-        activarSecuencia = true;
-      }
-
-      if (valor === correcto) {
-        celda.innerHTML = correcto;
-        celda.classList.remove('target');
-        celda.classList.add('correct');
-        document.getElementById('feedback').textContent = '🎉 Correct! Well done!';
-        resaltaCruz('green');
-        resultados.push(true);
-        if (resultados.length > 10) resultados.shift();
-        actualizarStats(tiempoRespuesta);
-        esperando = false;
-        timeoutReto = setTimeout(nuevoReto, 1000);
-      } else {
-        celda.innerHTML = valor || '';
-        celda.classList.remove('target');
-        celda.classList.add('incorrect');
-        document.getElementById('feedback').textContent = '';
-        resaltaCruz('red');
-        resultados.push(false);
-        if (resultados.length > 10) resultados.shift();
-        erroresPorCelda[filaActual-1][colActual-1]++;
-        actualizarStats(tiempoRespuesta);
-        esperando = false;
-        mostrarModalIncorrecto(`Incorrect, it was ${correcto}`);
-        timeoutReto = setTimeout(nuevoReto, 1000);
-      }
-
-      // Si corresponde, activa la secuencia de repetición (esto sobreescribe cualquier secuencia previa)
-      if (activarSecuencia) {
-        activarRepeticion(filaActual, colActual);
-      }
+      
+      // Call the common verification logic
+      verificarRespuestaCommon(valor);
     }
 
     // Modal simple para mostrar el error
@@ -1053,6 +1186,7 @@
       document.getElementById('porcentaje-correctas').textContent = "✅ Last 10: -- % correct";
       limpiarMatriz();
       ocultarCruz();
+      updateMobileChallenge();
     }
 
     // Al cargar, oculta la cruz y muestra el botón de inicio
@@ -1067,6 +1201,19 @@
       document.getElementById('ultimo-tiempo').textContent = "⚡ Last challenge: -- s";
       // Make sure the reset button is visible on load
       document.getElementById('reset-btn').style.display = '';
+      
+      // Initialize mobile challenge display
+      updateMobileChallenge();
+      
+      // Add Enter key listener for mobile input
+      const mobileInput = document.getElementById('mobile-challenge-input');
+      if (mobileInput) {
+        mobileInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            verificarRespuestaMobile();
+          }
+        });
+      }
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
