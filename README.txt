@@ -10,7 +10,7 @@ HOW TO USE:
 
 ⸻
 
-Created by: Rodrigo Figueroa, in Chile (rfiguerc@uc.cl, GitHub @frenetico55555)
+Created by: Rodrigo Figueroa, in Chile (rfiguerc@uc.cl, @frenetico55555)
 Purpose: Fast and fun multiplication training for kids.
 Ideal Age Range: 6–12 years
 Format: Web browser – no installs, no fuss.

@@ -2,117 +2,594 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Matriz Tablas de Multiplicar 1-12</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive multiplication tables game for kids ages 6-12. Learn multiplication from 1 to 12 with adaptive learning, real-time statistics, and fun animations!">
+  <meta name="keywords" content="multiplication, tables, game, math, education, kids, learning, interactive, adaptive">
+  <meta name="author" content="Rodrigo Figueroa">
+  <meta name="version" content="1.0.0">
+  <meta name="theme-color" content="#667eea">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://frenetico55555.github.io/times_tables_challenge/">
+  <meta property="og:title" content="🎮 Multiplication Tables Game (1 to 12) ⭐">
+  <meta property="og:description" content="Fun and interactive game to help kids master multiplication tables!">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://frenetico55555.github.io/times_tables_challenge/">
+  <meta property="twitter:title" content="🎮 Multiplication Tables Game (1 to 12) ⭐">
+  <meta property="twitter:description" content="Fun and interactive game to help kids master multiplication tables!">
+  
+  <title>🎮 Multiplication Tables Game 1-12 ⭐</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    table { 
-      border-collapse: collapse; 
-      margin: 2em 0; 
-      font-size: 1em;
-      max-width: 100vw;
-      max-height: 80vh;
-      width: auto;
-    }
-    th, td { 
-      border: 1px solid #888; 
-      padding: 0.35em;
-      text-align: center; 
-      width: 48px;
-      height: 29px; /* 36px * 0.8 = 28.8px, redondeado a 29px */
+    * {
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
     }
-    th { background: #f0f0f0; }
-    .highlight-row th, .highlight-row td { background: #ffe082 !important; }
-    .highlight-col { background: #ffe082 !important; }
-    .highlight-row.red th, .highlight-row.red td,
-    .highlight-col.red { background: #ef9a9a !important; }
-    .highlight-row.green th, .highlight-row.green td,
-    .highlight-col.green { background: #a5d6a7 !important; }
-    input[type="number"].cell-input { 
-      width: 44px;          /* Aumenta el ancho del input */
-      font-size: 1em; 
-      text-align: center; 
-      padding: 0;
+    
+    
+    table { 
+      border-collapse: separate;
+      border-spacing: 2px;
       margin: 0;
+      font-size: clamp(0.7em, 1.2vw, 1em);
+      width: 100%;
+      max-width: min(70vw, 900px);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: clamp(8px, 1vw, 12px);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+      animation: tableFloat 3s ease-in-out infinite;
     }
-    #juego-controls { margin: 1em 0; }
-    #stats { margin: 1em 0; font-size: 1.1em; }
-    #stats span { margin-right: 2em; }
-    #start-btn { font-size: 1.1em; padding: 0.5em 1.5em; margin-bottom: 1em; }
+    
+    @keyframes tableFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    
+    th, td { 
+      border: none;
+      padding: clamp(0.2em, 0.5vw, 0.35em);
+      text-align: center; 
+      width: clamp(30px, 4vw, 48px);
+      height: clamp(20px, 3vw, 32px);
+      box-sizing: border-box;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      font-size: clamp(0.75em, 1vw, 1em);
+    }
+    
+    th { 
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      font-weight: 700;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 8px rgba(240, 147, 251, 0.3);
+    }
+    
+    td {
+      background: white;
+      color: #333;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    td:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .highlight-row th, .highlight-row td { 
+      background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important; 
+      animation: pulse 0.6s ease-in-out;
+    }
+    .highlight-col { 
+      background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important; 
+      animation: pulse 0.6s ease-in-out;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    
+    .highlight-row.red th, .highlight-row.red td,
+    .highlight-col.red { 
+      background: linear-gradient(135deg, #ff7675 0%, #d63031 100%) !important;
+      animation: shake 0.5s ease-in-out;
+    }
+    .highlight-row.green th, .highlight-row.green td,
+    .highlight-col.green { 
+      background: linear-gradient(135deg, #55efc4 0%, #00b894 100%) !important;
+      animation: bounce 0.6s ease-in-out;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    input[type="number"].cell-input { 
+      width: 90%;
+      max-width: 44px;
+      font-size: clamp(0.9em, 1vw, 1.1em); 
+      text-align: center; 
+      padding: 2px;
+      margin: 0;
+      border: 3px solid #667eea;
+      border-radius: 8px;
+      font-weight: 700;
+      color: #667eea;
+      background: #fff;
+      transition: all 0.3s ease;
+      font-family: 'Quicksand', sans-serif;
+    }
+    
+    input[type="number"].cell-input:focus {
+      outline: none;
+      border-color: #f093fb;
+      box-shadow: 0 0 15px rgba(240, 147, 251, 0.5);
+      transform: scale(1.1);
+    }
+    
+    
+    #juego-controls { 
+      margin: 0;
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      padding: clamp(15px, 2vh, 25px);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      width: 100%;
+    }
+    
+    #juego-controls > div:first-child {
+      margin-bottom: 1.5em;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    #juego-controls button,
+    #juego-controls a {
+      margin: 5px 0 !important;
+      width: 100%;
+    }
+    
+    #juego-controls a button {
+      width: 100%;
+    }
+    
+    #stats { 
+      margin: 0;
+      font-size: 1em;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 600;
+    }
+    
+    #stats span { 
+      background: white;
+      padding: clamp(8px, 1.2vh, 12px) clamp(12px, 1.5vw, 16px);
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      color: #555;
+      text-align: left;
+      width: 100%;
+      font-size: clamp(0.85em, 1vw, 1em);
+    }
+    
+    #stats span:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    button {
+      font-size: clamp(0.85em, 1.1vw, 1em); 
+      padding: clamp(10px, 1.2vh, 12px) clamp(18px, 2vw, 24px); 
+      margin: 0;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 700;
+      font-family: 'Quicksand', sans-serif;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    #start-btn { 
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      font-size: clamp(1em, 1.3vw, 1.2em);
+      padding: clamp(12px, 1.5vh, 14px) clamp(24px, 2.5vw, 32px);
+      animation: pulseButton 2s infinite;
+    }
+    
+    @keyframes pulseButton {
+      0%, 100% { transform: scale(1); box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4); }
+      50% { transform: scale(1.05); box-shadow: 0 6px 20px rgba(56, 239, 125, 0.6); }
+    }
+    
+    #start-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 8px 25px rgba(56, 239, 125, 0.5);
+    }
+    
+    #reset-btn {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      color: white;
+    }
+    
+    #reset-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(250, 112, 154, 0.4);
+    }
+    
+    #screenshot-btn {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+    }
+    
+    #screenshot-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+    }
+    
+    a button {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+    
+    a button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(240, 147, 251, 0.4);
+    }
+    
     .oculto { visibility: hidden; }
+    
     html, body {
       width: 100vw;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
       padding: 0;
       overflow-x: hidden;
+      font-family: 'Quicksand', sans-serif;
     }
+    
     body {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
       min-height: 100vh;
-      background: #fff;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      padding: 1vh 1vw;
+      overflow-x: hidden;
     }
+    
+    #main-container {
+      display: flex;
+      flex-direction: row;
+      gap: 2vw;
+      width: 98vw;
+      max-width: 100%;
+      align-items: flex-start;
+      justify-content: center;
+      margin-top: 1vh;
+    }
+    
+    #left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1vh;
+      width: clamp(280px, 22vw, 360px);
+      flex-shrink: 0;
+    }
+    
+    #right-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+    }
+    
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    h1 {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(1.5em, 4vw, 2.5em);
+      color: white;
+      text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+      margin: 10px 0;
+      text-align: center;
+      animation: titleBounce 2s ease-in-out infinite;
+    }
+    
+    @keyframes titleBounce {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(-2deg); }
+    }
+    
+    label {
+      font-weight: 700;
+      color: #2d3436;
+      font-size: 1.1em;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+    }
+    
+    input[type="text"] {
+      font-size: clamp(0.95em, 1.1vw, 1.1em);
+      padding: clamp(8px, 1vh, 10px) clamp(12px, 1.5vw, 15px);
+      border: 3px solid #667eea;
+      border-radius: 15px;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 600;
+      color: #2d3436;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #f093fb;
+      box-shadow: 0 0 15px rgba(240, 147, 251, 0.5);
+      transform: scale(1.02);
+    }
+    
+    #feedback {
+      font-size: clamp(1em, 1.2vw, 1.2em);
+      font-weight: 700;
+      margin-top: clamp(10px, 1.5vh, 15px);
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      animation: feedbackPop 0.5s ease;
+      text-align: center;
+      display: block;
+      padding: clamp(8px, 1vh, 10px);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.2);
+    }
+    
+    @keyframes feedbackPop {
+      0% { transform: scale(0); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    
     #highscore {
       transition: color 0.3s, text-shadow 0.3s;
+      background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important;
+      font-size: 1.2em !important;
     }
+    
     .highscore-flash {
-      color: #d32f2f !important;
-      text-shadow: 0 0 16px #ff5252, 0 0 32px #ff5252;
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
+      color: white !important;
+      text-shadow: 0 0 20px #ff5252, 0 0 40px #ff5252;
       animation: highscore-bounce 1s cubic-bezier(.36,1.5,.64,1) 1;
     }
+    
     @keyframes highscore-bounce {
       0%   { transform: scale(1) translateY(0) rotate(0deg);}
-      10%  { transform: scale(1.25) translateY(-10px) rotate(-5deg);}
-      20%  { transform: scale(1.35) translateY(-20px) rotate(5deg);}
-      30%  { transform: scale(1.25) translateY(-10px) rotate(-5deg);}
-      40%  { transform: scale(1.15) translateY(-5px) rotate(3deg);}
-      50%  { transform: scale(1.1) translateY(-2px) rotate(-2deg);}
-      60%  { transform: scale(1.05) translateY(0) rotate(1deg);}
-      70%  { transform: scale(1.1) translateY(-2px) rotate(-1deg);}
-      80%  { transform: scale(1.05) translateY(0) rotate(0deg);}
+      10%  { transform: scale(1.3) translateY(-12px) rotate(-8deg);}
+      20%  { transform: scale(1.4) translateY(-22px) rotate(8deg);}
+      30%  { transform: scale(1.3) translateY(-12px) rotate(-8deg);}
+      40%  { transform: scale(1.2) translateY(-6px) rotate(4deg);}
+      50%  { transform: scale(1.15) translateY(-3px) rotate(-3deg);}
+      60%  { transform: scale(1.1) translateY(0) rotate(2deg);}
+      70%  { transform: scale(1.15) translateY(-3px) rotate(-2deg);}
+      80%  { transform: scale(1.1) translateY(0) rotate(0deg);}
       100% { transform: scale(1) translateY(0) rotate(0deg);}
     }
+    
+    .correct {
+      background: linear-gradient(135deg, #55efc4 0%, #00b894 100%) !important;
+      color: white !important;
+      font-weight: 700;
+      animation: correctPop 0.6s ease;
+    }
+    
+    @keyframes correctPop {
+      0% { transform: scale(0) rotate(0deg); }
+      50% { transform: scale(1.3) rotate(10deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    
+    .incorrect {
+      background: linear-gradient(135deg, #ff7675 0%, #d63031 100%) !important;
+      color: white !important;
+      font-weight: 700;
+      animation: incorrectShake 0.5s ease;
+    }
+    
+    @keyframes incorrectShake {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      20% { transform: translateX(-8px) rotate(-5deg); }
+      40% { transform: translateX(8px) rotate(5deg); }
+      60% { transform: translateX(-8px) rotate(-5deg); }
+      80% { transform: translateX(8px) rotate(5deg); }
+    }
+    
+    /* Decorative stars */
+    .star {
+      position: absolute;
+      font-size: 2em;
+      animation: twinkle 2s infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+    
+    @keyframes modalPop {
+      0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+      50% { transform: scale(1.2) rotate(10deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    
+    @media (max-width: 1024px) {
+      #main-container {
+        flex-direction: column;
+        align-items: center;
+        width: 95vw;
+      }
+      
+      #left-panel {
+        width: 100%;
+        max-width: 500px;
+      }
+      
+      #right-panel {
+        width: 100%;
+      }
+      
+      table {
+        max-width: 95vw;
+        font-size: clamp(0.65em, 1.5vw, 0.9em);
+      }
+      
+      #stats {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+      
+      #stats span {
+        flex: 1 1 calc(50% - 5px);
+        min-width: 140px;
+      }
+    }
+    
     @media (max-width: 700px) {
-      table { font-size: 0.75em; }
-      th, td { width: 30px; height: 22px; }
-      input[type="number"].cell-input { width: 26px; }
+      h1 { font-size: clamp(1.3em, 5vw, 1.8em); }
+      
+      #main-container {
+        width: 98vw;
+        gap: 1vh;
+      }
+      
+      table { 
+        font-size: clamp(0.6em, 2vw, 0.75em);
+        max-width: 98vw;
+      }
+      
+      th, td { 
+        width: clamp(22px, 6vw, 30px); 
+        height: clamp(18px, 5vw, 22px); 
+        padding: clamp(0.15em, 0.3vw, 0.25em);
+      }
+      
+      input[type="number"].cell-input { 
+        width: 85%;
+        max-width: 26px;
+        font-size: clamp(0.8em, 1.5vw, 0.9em);
+      }
+      
+      button { 
+        font-size: clamp(0.8em, 2vw, 0.9em); 
+        padding: clamp(8px, 1.5vh, 10px) clamp(16px, 3vw, 20px); 
+      }
+      
+      #start-btn {
+        font-size: clamp(0.9em, 2.5vw, 1.1em);
+      }
+      
+      #stats { 
+        font-size: clamp(0.8em, 1.8vw, 0.95em); 
+        flex-direction: column; 
+      }
+      
+      #stats span { 
+        flex: 1 1 100%; 
+      }
+      
+      .star {
+        font-size: clamp(1.2em, 3vw, 1.5em);
+      }
+    }
+    
+    @media (min-width: 1400px) {
+      #left-panel {
+        width: clamp(320px, 20vw, 400px);
+      }
+      
+      table {
+        max-width: min(60vw, 1000px);
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Decorative stars -->
+  <div class="star" style="top: 10%; left: 10%;">⭐</div>
+  <div class="star" style="top: 15%; right: 15%; animation-delay: 0.5s;">✨</div>
+  <div class="star" style="top: 80%; left: 20%; animation-delay: 1s;">🌟</div>
+  <div class="star" style="top: 85%; right: 10%; animation-delay: 1.5s;">💫</div>
+  <div class="star" style="top: 40%; left: 5%; animation-delay: 0.8s;">⭐</div>
+  <div class="star" style="top: 50%; right: 8%; animation-delay: 1.2s;">✨</div>
+  
   <script>
     window.addEventListener('DOMContentLoaded', function() {
       setTimeout(function() {
         alert(
-          'Hello! We created this math game for our kids to help them learn the multiplication tables. They loved it! They started trying to beat their "higher score" in exchange for a prize, and in just one week they knew all the tables, haha. They liked it so much that they shared it with their friends, and several parents asked us for the game, so we uploaded it here. Before publishing it on a pro site, we are asking for suggestions to improve it. If you want to help make this tool better for kids, we would appreciate your feedback by clicking the "Send Suggestions" button below. Thank you very much!'
+          '🎮 Hello! We created this math game for our kids to help them learn the multiplication tables. They loved it! They started trying to beat their "higher score" in exchange for a prize, and in just one week they knew all the tables, haha. They liked it so much that they shared it with their friends, and several parents asked us for the game, so we uploaded it here. Before publishing it on a pro site, we are asking for suggestions to improve it. If you want to help make this tool better for kids, we would appreciate your feedback by clicking the "Send Suggestions" button below. Thank you very much! ⭐'
         );
       }, 100);
     });
   </script>
-  <h1>Multiplication Tables Game (1 to 12)</h1>
-  <div id="juego-controls">
-    <div style="margin-bottom: 1em;">
-      <label for="nombre-jugador" style="font-weight:bold;">Name:</label>
-      <input type="text" id="nombre-jugador" style="font-size:1em; width: 180px;" placeholder="Your name..." autocomplete="off">
+  <h1>🎮 Multiplication Tables Game (1 to 12) ⭐</h1>
+  
+  <div id="main-container">
+    <!-- Left Panel: Controls and Stats -->
+    <div id="left-panel">
+      <div id="juego-controls">
+        <div style="margin-bottom: 1.5em;">
+          <label for="nombre-jugador" style="font-weight:bold;">👤 Name:</label>
+          <input type="text" id="nombre-jugador" style="font-size:1.1em; width: 100%;" placeholder="Your name..." autocomplete="off">
+        </div>
+        <button id="start-btn" onclick="iniciarJuego()">🚀 Start Game!</button>
+        <button id="reset-btn" onclick="reiniciarJuego()">🔄 Reset Timer</button>
+        <button id="screenshot-btn">📸 Take Screenshot</button>
+        <a href="https://forms.gle/AvHgLfGM7LdmSfbt6" target="_blank" rel="noopener" style="text-decoration:none;">
+          <button type="button">💡 Send Suggestions</button>
+        </a>
+        <span id="feedback"></span>
+      </div>
+      
+      <div id="stats">
+        <span id="cronometro">⏱️ Total time: 00:00</span>
+        <span id="ultimo-tiempo">⚡ Last challenge: -- s</span>
+        <span id="promedio-tiempo">📊 Average: -- s</span>
+        <span id="porcentaje-correctas">✅ Last 10: -- % correct</span>
+        <span id="score">🎯 Score: --</span>
+        <span id="highscore">🏆 Higher Score: --</span>
+      </div>
     </div>
-    <button id="start-btn" onclick="iniciarJuego()">Start</button>
-    <button id="reset-btn" onclick="reiniciarJuego()" style="margin-left:1em;">Reset timer</button>
-    <button id="screenshot-btn" style="margin-left:1em;">Take screenshot</button>
-    <a href="https://forms.gle/AvHgLfGM7LdmSfbt6" target="_blank" rel="noopener" style="margin-left:1em; text-decoration:none;">
-      <button type="button">Send suggestions</button>
-    </a>
-    <div id="stats">
-      <span id="cronometro">Total time: 00:00</span>
-      <span id="ultimo-tiempo">Last challenge: -- s</span>
-      <span id="promedio-tiempo">Average: -- s</span>
-      <span id="porcentaje-correctas">Last 10: -- % correct</span>
-      <span id="score">Score: --</span>
-      <span id="highscore">Higher Score: --</span>
-    </div>
-    <span id="feedback"></span>
-  </div>
+    
+    <!-- Right Panel: Game Table -->
+    <div id="right-panel">
   <table id="matriz">
     <thead>
       <tr>
@@ -138,6 +615,8 @@
       </script>
     </tbody>
   </table>
+    </div>
+  </div>
   <script>
     let filaActual = null, colActual = null, esperando = false;
     let timeoutReto = null;
@@ -176,14 +655,14 @@
 
     function actualizarCronometro() {
       if (!tiempoInicioCronometro) {
-        document.getElementById('cronometro').textContent = "Total time: 00:00";
+        document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
         return;
       }
       let ahora = Date.now();
       let diff = Math.floor((ahora - tiempoInicioCronometro) / 1000);
       let min = Math.floor(diff / 60);
       let seg = diff % 60;
-      document.getElementById('cronometro').textContent = `Total time: ${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
+      document.getElementById('cronometro').textContent = `⏱️ Total time: ${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
     }
 
     function limpiarMatriz() {
@@ -247,33 +726,33 @@
       if (ultimosTiempos.length > 0) {
         const suma = ultimosTiempos.reduce((a, b) => a + b, 0);
         prom = suma / ultimosTiempos.length;
-        document.getElementById('promedio-tiempo').textContent = `Average: ${prom.toFixed(2)} s`;
+        document.getElementById('promedio-tiempo').textContent = `📊 Average: ${prom.toFixed(2)} s`;
       } else {
-        document.getElementById('promedio-tiempo').textContent = `Average: -- s`;
+        document.getElementById('promedio-tiempo').textContent = `📊 Average: -- s`;
       }
       // Último reto
       if (ultimoTiempo !== null) {
-        document.getElementById('ultimo-tiempo').textContent = `Last challenge: ${ultimoTiempo.toFixed(2)} s`;
+        document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: ${ultimoTiempo.toFixed(2)} s`;
       } else if (ultimosTiempos.length > 0) {
-        document.getElementById('ultimo-tiempo').textContent = `Last challenge: ${ultimosTiempos[ultimosTiempos.length-1].toFixed(2)} s`;
+        document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: ${ultimosTiempos[ultimosTiempos.length-1].toFixed(2)} s`;
       } else {
-        document.getElementById('ultimo-tiempo').textContent = `Last challenge: -- s`;
+        document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: -- s`;
       }
       // % correctas últimos 10
       let porcentaje = null;
       if (ultimosResultados.length > 0) {
         const correctas = ultimosResultados.filter(x => x).length;
         porcentaje = correctas / ultimosResultados.length;
-        document.getElementById('porcentaje-correctas').textContent = `Last 10: ${(porcentaje*100).toFixed(0)}% correct`;
+        document.getElementById('porcentaje-correctas').textContent = `✅ Last 10: ${(porcentaje*100).toFixed(0)}% correct`;
       } else {
-        document.getElementById('porcentaje-correctas').textContent = `Last 10: -- % correct`;
+        document.getElementById('porcentaje-correctas').textContent = `✅ Last 10: -- % correct`;
       }
       // Score
-      let scoreText = "Score: --";
+      let scoreText = "🎯 Score: --";
       let score = null;
       if (porcentaje !== null && prom !== null && prom > 0) {
         score = (porcentaje / prom) * 100;
-        scoreText = `Score: ${score.toFixed(1)}`;
+        scoreText = `🎯 Score: ${score.toFixed(1)}`;
       }
       document.getElementById('score').textContent = scoreText;
 
@@ -291,10 +770,10 @@
             highscoreElem.classList.remove('highscore-flash');
           }, 1000);
         }
-        highscoreElem.textContent = `Higher Score: ${highScore.toFixed(1)}`;
+        highscoreElem.textContent = `🏆 Higher Score: ${highScore.toFixed(1)}`;
       } else {
         highScore = null;
-        highscoreElem.textContent = "Higher Score: --";
+        highscoreElem.textContent = "🏆 Higher Score: --";
         highscoreElem.classList.remove('highscore-flash');
       }
     }
@@ -501,7 +980,7 @@
         celda.innerHTML = correcto;
         celda.classList.remove('target');
         celda.classList.add('correct');
-        document.getElementById('feedback').textContent = 'Correct!';
+        document.getElementById('feedback').textContent = '🎉 Correct! Well done!';
         resaltaCruz('green');
         resultados.push(true);
         if (resultados.length > 10) resultados.shift();
@@ -538,16 +1017,16 @@
       modal.style.left = '0';
       modal.style.width = '100vw';
       modal.style.height = '100vh';
-      modal.style.background = 'rgba(0,0,0,0.3)';
+      modal.style.background = 'rgba(0,0,0,0.5)';
       modal.style.display = 'flex';
       modal.style.alignItems = 'center';
       modal.style.justifyContent = 'center';
       modal.style.zIndex = '9999';
-      modal.innerHTML = `<div style="background:white;padding:2em 3em;border-radius:10px;font-size:1.5em;color:#b71c1c;box-shadow:0 2px 16px #0003;">${mensaje}</div>`;
+      modal.innerHTML = `<div style="background: linear-gradient(135deg, #ff7675 0%, #d63031 100%); padding: 30px 50px; border-radius: 25px; font-size: 1.8em; color: white; font-weight: 700; box-shadow: 0 10px 40px rgba(214, 48, 49, 0.5); font-family: 'Fredoka One', cursive; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); animation: modalPop 0.5s ease;">❌ ${mensaje}</div>`;
       document.body.appendChild(modal);
       setTimeout(() => {
         if (modal.parentNode) modal.parentNode.removeChild(modal);
-      }, 1000);
+      }, 1200);
     }
 
     function reiniciarJuego() {
@@ -565,13 +1044,13 @@
       highScore = null;
       // Limpia la interfaz
       document.getElementById('start-btn').style.display = '';
-      document.getElementById('cronometro').textContent = "Total time: 00:00";
-      document.getElementById('ultimo-tiempo').textContent = "Last challenge: -- s";
+      document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
+      document.getElementById('ultimo-tiempo').textContent = "⚡ Last challenge: -- s";
       document.getElementById('feedback').textContent = "";
-      document.getElementById('score').textContent = "Score: --";
-      document.getElementById('highscore').textContent = "Higher Score: --";
-      document.getElementById('promedio-tiempo').textContent = "Average: -- s";
-      document.getElementById('porcentaje-correctas').textContent = "Last 10: -- % correct";
+      document.getElementById('score').textContent = "🎯 Score: --";
+      document.getElementById('highscore').textContent = "🏆 Higher Score: --";
+      document.getElementById('promedio-tiempo').textContent = "📊 Average: -- s";
+      document.getElementById('porcentaje-correctas').textContent = "✅ Last 10: -- % correct";
       limpiarMatriz();
       ocultarCruz();
     }
@@ -584,8 +1063,8 @@
       limpiarMatriz();
       ocultarCruz();
       detenerCronometro();
-      document.getElementById('cronometro').textContent = "Total time: 00:00";
-      document.getElementById('ultimo-tiempo').textContent = "Last challenge: -- s";
+      document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
+      document.getElementById('ultimo-tiempo').textContent = "⚡ Last challenge: -- s";
       // Make sure the reset button is visible on load
       document.getElementById('reset-btn').style.display = '';
     };
@@ -606,9 +1085,9 @@
         link.href = canvas.toDataURL();
         link.click();
         // Opcional: muestra un mensaje
-        alert('Screenshot saved! You can send it to your parent and ask for your prize :D');
+        alert('📸 Screenshot saved! You can send it to your parent and ask for your prize! 🎁✨');
       }).catch(err => {
-        alert('An error occurred while generating the screenshot.');
+        alert('⚠️ An error occurred while generating the screenshot.');
         console.error(err);
       });
     };
