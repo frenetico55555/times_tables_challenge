@@ -596,6 +596,11 @@
         gap: 0.5vh;
       }
       
+      /* Hide decorative stars on mobile to reduce visual clutter */
+      .star {
+        display: none;
+      }
+      
       /* Hide stats panel before game starts on mobile to save space */
       #stats {
         display: none;
@@ -636,11 +641,6 @@
       
       /* Hide h1 when game is active on mobile */
       body.mobile-game-active h1 {
-        display: none;
-      }
-      
-      /* Hide stars when game is active on mobile */
-      body.mobile-game-active .star {
         display: none;
       }
       
