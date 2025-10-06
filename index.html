@@ -602,9 +602,12 @@
         display: flex;
       }
       
-      /* Hide submit button on mobile - use Enter key instead */
+      /* Show Enter button on mobile for easy submission */
       #mobile-challenge-submit {
-        display: none;
+        display: block;
+        padding: 15px 40px;
+        font-size: 1.5em;
+        margin-top: 10px;
       }
       
       /* Show compact stats bar on mobile when game is active */
@@ -725,7 +728,7 @@
   <div id="mobile-challenge">
     <div id="mobile-challenge-question">? × ? = ?</div>
     <input type="number" id="mobile-challenge-input" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
-    <button id="mobile-challenge-submit" onclick="verificarRespuestaMobile()">✓ Submit</button>
+    <button id="mobile-challenge-submit" onclick="verificarRespuestaMobile()">⏎ ENTER</button>
     <div id="mobile-feedback"></div>
   </div>
   
