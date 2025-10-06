@@ -520,6 +520,9 @@
       font-family: 'Quicksand', sans-serif;
       margin-bottom: 20px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      -webkit-user-select: text;
+      user-select: text;
+      -webkit-tap-highlight-color: transparent;
     }
     
     #mobile-challenge-input:focus {
@@ -938,6 +941,18 @@
       // Enable mobile-specific layout on small screens
       if (window.innerWidth <= 700) {
         document.body.classList.add('mobile-game-active');
+        
+        // Focus mobile input immediately on game start (iOS requires focus in direct user action)
+        const mobileInput = document.getElementById('mobile-challenge-input');
+        if (mobileInput) {
+          // Multiple focus attempts for better iOS compatibility
+          mobileInput.focus();
+          requestAnimationFrame(() => {
+            mobileInput.focus();
+            // Ensure cursor is visible
+            mobileInput.click();
+          });
+        }
       }
       
       nuevoReto();
@@ -1073,7 +1088,19 @@
       }
       if (inputElem) {
         inputElem.value = '';
-        setTimeout(() => inputElem.focus(), 100);
+        
+        // Aggressive focus for iOS compatibility - multiple attempts with different timing
+        inputElem.focus();
+        requestAnimationFrame(() => {
+          inputElem.focus();
+          inputElem.click();
+        });
+        setTimeout(() => {
+          inputElem.focus();
+        }, 50);
+        setTimeout(() => {
+          inputElem.focus();
+        }, 150);
         
         // Auto-submit when 2-3 digits are entered (for fast gameplay on mobile)
         inputElem.oninput = function() {
