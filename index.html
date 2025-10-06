@@ -545,6 +545,10 @@
       font-family: 'Quicksand', sans-serif;
       text-transform: uppercase;
       letter-spacing: 1px;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     
     #mobile-challenge-submit:active {
@@ -733,7 +737,7 @@
   <div id="mobile-challenge">
     <div id="mobile-challenge-question">? × ? = ?</div>
     <input type="number" id="mobile-challenge-input" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
-    <button id="mobile-challenge-submit" onmousedown="event.preventDefault(); verificarRespuestaMobile();" ontouchstart="event.preventDefault(); verificarRespuestaMobile();">⏎ ENTER</button>
+    <button id="mobile-challenge-submit" type="button" onmousedown="event.preventDefault(); verificarRespuestaMobile(); return false;" ontouchstart="event.preventDefault(); verificarRespuestaMobile(); return false;" onclick="event.preventDefault(); return false;">⏎ ENTER</button>
     <div id="mobile-feedback"></div>
   </div>
   
@@ -1133,12 +1137,22 @@
       // Call the main verification logic
       verificarRespuestaCommon(valor);
       
-      // Immediately refocus to keep keyboard visible
-      setTimeout(() => {
-        if (input) {
+      // Aggressive refocus to keep keyboard visible - multiple attempts
+      if (input) {
+        input.focus();
+        requestAnimationFrame(() => {
           input.focus();
-        }
-      }, 50);
+        });
+        setTimeout(() => {
+          input.focus();
+        }, 10);
+        setTimeout(() => {
+          input.focus();
+        }, 50);
+        setTimeout(() => {
+          input.focus();
+        }, 100);
+      }
     }
 
     function verificarRespuestaCommon(valor) {
