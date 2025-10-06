@@ -558,6 +558,29 @@
       min-height: 40px;
     }
     
+    /* Mobile compact stats bar */
+    #mobile-stats-bar {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(102, 126, 234, 0.95);
+      padding: 8px 15px;
+      z-index: 1000;
+      font-size: 0.85em;
+      color: white;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      font-family: 'Quicksand', sans-serif;
+    }
+    
+    #mobile-stats-bar span {
+      margin: 0 10px;
+      display: inline-block;
+    }
+    
     @media (max-width: 700px) {
       h1 { font-size: clamp(1.3em, 5vw, 1.8em); }
       
@@ -574,6 +597,36 @@
       /* Show mobile challenge display */
       #mobile-challenge {
         display: flex;
+      }
+      
+      /* Hide submit button on mobile - use Enter key instead */
+      #mobile-challenge-submit {
+        display: none;
+      }
+      
+      /* Show compact stats bar on mobile when game is active */
+      body.mobile-game-active #mobile-stats-bar {
+        display: block;
+      }
+      
+      /* Hide left panel when game is active on mobile */
+      body.mobile-game-active #left-panel {
+        display: none;
+      }
+      
+      /* Adjust main container when game is active */
+      body.mobile-game-active #main-container {
+        margin-top: 50px;
+      }
+      
+      /* Hide h1 when game is active on mobile */
+      body.mobile-game-active h1 {
+        display: none;
+      }
+      
+      /* Hide stars when game is active on mobile */
+      body.mobile-game-active .star {
+        display: none;
       }
       
       button { 
@@ -618,6 +671,12 @@
   <div class="star" style="top: 85%; right: 10%; animation-delay: 1.5s;">💫</div>
   <div class="star" style="top: 40%; left: 5%; animation-delay: 0.8s;">⭐</div>
   <div class="star" style="top: 50%; right: 8%; animation-delay: 1.2s;">✨</div>
+  
+  <!-- Mobile compact stats bar -->
+  <div id="mobile-stats-bar">
+    <span id="mobile-avg">📊 Avg: -- s</span>
+    <span id="mobile-score">🎯 Score: --</span>
+  </div>
   
   <script>
     window.addEventListener('DOMContentLoaded', function() {
@@ -853,12 +912,34 @@
         highscoreElem.textContent = "🏆 Higher Score: --";
         highscoreElem.classList.remove('highscore-flash');
       }
+      
+      // Update mobile stats bar
+      const mobileAvg = document.getElementById('mobile-avg');
+      const mobileScore = document.getElementById('mobile-score');
+      if (mobileAvg && mobileScore) {
+        if (prom !== null) {
+          mobileAvg.textContent = `📊 Avg: ${prom.toFixed(1)}s`;
+        } else {
+          mobileAvg.textContent = `📊 Avg: --`;
+        }
+        if (score !== null) {
+          mobileScore.textContent = `🎯 Score: ${score.toFixed(1)}`;
+        } else {
+          mobileScore.textContent = `🎯 Score: --`;
+        }
+      }
     }
 
     function iniciarJuego() {
       document.getElementById('start-btn').style.display = 'none';
       juegoIniciado = true;
       iniciarCronometro();
+      
+      // Enable mobile-specific layout on small screens
+      if (window.innerWidth <= 700) {
+        document.body.classList.add('mobile-game-active');
+      }
+      
       nuevoReto();
     }
 
@@ -993,6 +1074,15 @@
       if (inputElem) {
         inputElem.value = '';
         setTimeout(() => inputElem.focus(), 100);
+        
+        // Auto-submit when 2-3 digits are entered (for fast gameplay on mobile)
+        inputElem.oninput = function() {
+          const value = this.value;
+          // Auto-submit if 3 digits entered (max is 144)
+          if (value.length === 3) {
+            setTimeout(() => verificarRespuestaMobile(), 100);
+          }
+        };
       }
       if (feedbackElem) {
         feedbackElem.textContent = '';
@@ -1187,6 +1277,9 @@
       limpiarMatriz();
       ocultarCruz();
       updateMobileChallenge();
+      
+      // Remove mobile game active class
+      document.body.classList.remove('mobile-game-active');
     }
 
     // Al cargar, oculta la cruz y muestra el botón de inicio
