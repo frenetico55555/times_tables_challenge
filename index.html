@@ -482,38 +482,175 @@
       }
     }
     
+    /* Mobile Challenge Display */
+    #mobile-challenge {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px 15px 15px 15px;
+      border-radius: 25px;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+      margin: 15px auto;
+      max-width: 95vw;
+      min-height: auto;
+    }
+    
+    #mobile-challenge-question {
+      font-size: 2.8em;
+      font-weight: 700;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+      margin-bottom: 15px;
+      font-family: 'Fredoka One', cursive;
+      text-align: center;
+    }
+    
+    #mobile-challenge-input {
+      width: 180px;
+      height: 70px;
+      font-size: 2.5em;
+      text-align: center;
+      border: 4px solid #f093fb;
+      border-radius: 15px;
+      font-weight: 700;
+      color: #667eea;
+      background: white;
+      font-family: 'Quicksand', sans-serif;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      -webkit-user-select: text;
+      user-select: text;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    #mobile-challenge-input:focus {
+      outline: none;
+      border-color: #ffeaa7;
+      box-shadow: 0 0 30px rgba(255, 234, 167, 0.8);
+      transform: scale(1.02);
+    }
+    
+    #mobile-challenge-submit {
+      padding: 14px 35px;
+      font-size: 1.3em;
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      border: none;
+      border-radius: 40px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(56, 239, 125, 0.4);
+      font-family: 'Quicksand', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    
+    #mobile-challenge-submit:active {
+      transform: scale(0.95);
+    }
+    
+    #mobile-feedback {
+      font-size: 2em;
+      font-weight: 700;
+      margin-top: 20px;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      text-align: center;
+      min-height: 40px;
+    }
+    
+    /* Mobile compact stats bar */
+    #mobile-stats-bar {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(102, 126, 234, 0.95);
+      padding: 8px 15px;
+      z-index: 1000;
+      font-size: 0.85em;
+      color: white;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      font-family: 'Quicksand', sans-serif;
+    }
+    
+    #mobile-stats-bar span {
+      margin: 0 10px;
+      display: inline-block;
+    }
+    
     @media (max-width: 700px) {
-      h1 { font-size: clamp(1.3em, 5vw, 1.8em); }
+      h1 { font-size: clamp(1.2em, 4.5vw, 1.6em); }
       
       #main-container {
         width: 98vw;
-        gap: 1vh;
+        gap: 0.5vh;
       }
       
+      /* Hide decorative stars on mobile to reduce visual clutter */
+      .star {
+        display: none;
+      }
+      
+      /* Hide stats panel before game starts on mobile to save space */
+      #stats {
+        display: none;
+      }
+      
+      /* Hide the full table on mobile */
       table { 
-        font-size: clamp(0.6em, 2vw, 0.75em);
-        max-width: 98vw;
+        display: none;
       }
       
-      th, td { 
-        width: clamp(22px, 6vw, 30px); 
-        height: clamp(18px, 5vw, 22px); 
-        padding: clamp(0.15em, 0.3vw, 0.25em);
+      /* Show mobile challenge display */
+      #mobile-challenge {
+        display: flex;
       }
       
-      input[type="number"].cell-input { 
-        width: 85%;
-        max-width: 26px;
-        font-size: clamp(0.8em, 1.5vw, 0.9em);
+      /* Show Enter button on mobile for easy submission */
+      #mobile-challenge-submit {
+        display: block;
+        padding: 12px 30px;
+        font-size: 1.2em;
+        margin-top: 6px;
+      }
+      
+      /* Show compact stats bar on mobile when game is active */
+      body.mobile-game-active #mobile-stats-bar {
+        display: block;
+      }
+      
+      /* Hide left panel when game is active on mobile */
+      body.mobile-game-active #left-panel {
+        display: none;
+      }
+      
+      /* Adjust main container when game is active */
+      body.mobile-game-active #main-container {
+        margin-top: 50px;
+      }
+      
+      /* Hide h1 when game is active on mobile */
+      body.mobile-game-active h1 {
+        display: none;
       }
       
       button { 
-        font-size: clamp(0.8em, 2vw, 0.9em); 
-        padding: clamp(8px, 1.5vh, 10px) clamp(16px, 3vw, 20px); 
+        font-size: clamp(0.75em, 1.8vw, 0.85em); 
+        padding: clamp(6px, 1vh, 8px) clamp(12px, 2.5vw, 16px); 
       }
       
       #start-btn {
-        font-size: clamp(0.9em, 2.5vw, 1.1em);
+        font-size: clamp(0.85em, 2.2vw, 1em);
       }
       
       #stats { 
@@ -549,6 +686,12 @@
   <div class="star" style="top: 85%; right: 10%; animation-delay: 1.5s;">💫</div>
   <div class="star" style="top: 40%; left: 5%; animation-delay: 0.8s;">⭐</div>
   <div class="star" style="top: 50%; right: 8%; animation-delay: 1.2s;">✨</div>
+  
+  <!-- Mobile compact stats bar -->
+  <div id="mobile-stats-bar">
+    <span id="mobile-avg">📊 Avg: -- s</span>
+    <span id="mobile-score">🎯 Score: --</span>
+  </div>
   
   <script>
     window.addEventListener('DOMContentLoaded', function() {
@@ -590,6 +733,14 @@
     
     <!-- Right Panel: Game Table -->
     <div id="right-panel">
+  <!-- Mobile Challenge Display -->
+  <div id="mobile-challenge">
+    <div id="mobile-challenge-question">? × ? = ?</div>
+    <input type="number" id="mobile-challenge-input" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
+    <button id="mobile-challenge-submit" type="button" onmousedown="event.preventDefault(); verificarRespuestaMobile(); return false;" ontouchstart="event.preventDefault(); verificarRespuestaMobile(); return false;" onclick="event.preventDefault(); return false;">⏎ ENTER</button>
+    <div id="mobile-feedback"></div>
+  </div>
+  
   <table id="matriz">
     <thead>
       <tr>
@@ -776,12 +927,46 @@
         highscoreElem.textContent = "🏆 Higher Score: --";
         highscoreElem.classList.remove('highscore-flash');
       }
+      
+      // Update mobile stats bar
+      const mobileAvg = document.getElementById('mobile-avg');
+      const mobileScore = document.getElementById('mobile-score');
+      if (mobileAvg && mobileScore) {
+        if (prom !== null) {
+          mobileAvg.textContent = `📊 Avg: ${prom.toFixed(1)}s`;
+        } else {
+          mobileAvg.textContent = `📊 Avg: --`;
+        }
+        if (score !== null) {
+          mobileScore.textContent = `🎯 Score: ${score.toFixed(1)}`;
+        } else {
+          mobileScore.textContent = `🎯 Score: --`;
+        }
+      }
     }
 
     function iniciarJuego() {
       document.getElementById('start-btn').style.display = 'none';
       juegoIniciado = true;
       iniciarCronometro();
+      
+      // Enable mobile-specific layout on small screens
+      if (window.innerWidth <= 700) {
+        document.body.classList.add('mobile-game-active');
+        
+        // Focus mobile input immediately on game start (iOS requires focus in direct user action)
+        const mobileInput = document.getElementById('mobile-challenge-input');
+        if (mobileInput) {
+          // Multiple focus attempts for better iOS compatibility
+          mobileInput.focus();
+          requestAnimationFrame(() => {
+            mobileInput.focus();
+            // Ensure cursor is visible
+            mobileInput.click();
+          });
+        }
+      }
+      
       nuevoReto();
     }
 
@@ -897,10 +1082,139 @@
       }
     }
 
+    // Mobile Challenge Functions
+    function updateMobileChallenge() {
+      const questionElem = document.getElementById('mobile-challenge-question');
+      const inputElem = document.getElementById('mobile-challenge-input');
+      const feedbackElem = document.getElementById('mobile-feedback');
+      
+      if (!juegoIniciado || filaActual === null || colActual === null) {
+        if (questionElem) questionElem.textContent = '? × ? = ?';
+        if (inputElem) inputElem.value = '';
+        if (feedbackElem) feedbackElem.textContent = '';
+        return;
+      }
+      
+      if (questionElem) {
+        questionElem.textContent = `${filaActual} × ${colActual} = ?`;
+      }
+      if (inputElem) {
+        inputElem.value = '';
+        
+        // Aggressive focus for iOS compatibility - multiple attempts with different timing
+        inputElem.focus();
+        requestAnimationFrame(() => {
+          inputElem.focus();
+          inputElem.click();
+        });
+        setTimeout(() => {
+          inputElem.focus();
+        }, 50);
+        setTimeout(() => {
+          inputElem.focus();
+        }, 150);
+        
+        // Auto-submit when 2-3 digits are entered (for fast gameplay on mobile)
+        inputElem.oninput = function() {
+          const value = this.value;
+          // Auto-submit if 3 digits entered (max is 144)
+          if (value.length === 3) {
+            setTimeout(() => verificarRespuestaMobile(), 100);
+          }
+        };
+      }
+      if (feedbackElem) {
+        feedbackElem.textContent = '';
+      }
+    }
+
+    function verificarRespuestaMobile() {
+      if (!esperando) return;
+      const input = document.getElementById('mobile-challenge-input');
+      if (!input) return;
+      const valor = parseInt(input.value, 10);
+      
+      // Call the main verification logic
+      verificarRespuestaCommon(valor);
+      
+      // Aggressive refocus to keep keyboard visible - multiple attempts
+      if (input) {
+        input.focus();
+        requestAnimationFrame(() => {
+          input.focus();
+        });
+        setTimeout(() => {
+          input.focus();
+        }, 10);
+        setTimeout(() => {
+          input.focus();
+        }, 50);
+        setTimeout(() => {
+          input.focus();
+        }, 100);
+      }
+    }
+
+    function verificarRespuestaCommon(valor) {
+      if (!esperando) return;
+      const correcto = filaActual * colActual;
+      let celda = document.querySelector('#matriz td[data-row="'+filaActual+'"][data-col="'+colActual+'"]');
+      
+      let tiempoRespuesta = tiempoInicio ? (Date.now() - tiempoInicio) / 1000 : null;
+      if (tiempoRespuesta !== null) {
+        tiempos.push(tiempoRespuesta);
+        if (tiempos.length > 10) tiempos.shift();
+      }
+
+      // --- Nueva lógica de repetición ---
+      let activarSecuencia = false;
+      if (valor !== correcto || (tiempoRespuesta !== null && tiempoRespuesta > 6)) {
+        activarSecuencia = true;
+      }
+
+      if (valor === correcto) {
+        if (celda) {
+          celda.innerHTML = correcto;
+          celda.classList.remove('target');
+          celda.classList.add('correct');
+        }
+        document.getElementById('feedback').textContent = '🎉 Correct! Well done!';
+        document.getElementById('mobile-feedback').textContent = '🎉 Correct! Well done!';
+        resaltaCruz('green');
+        resultados.push(true);
+        if (resultados.length > 10) resultados.shift();
+        actualizarStats(tiempoRespuesta);
+        esperando = false;
+        timeoutReto = setTimeout(nuevoReto, 1000);
+      } else {
+        if (celda) {
+          celda.innerHTML = valor || '';
+          celda.classList.remove('target');
+          celda.classList.add('incorrect');
+        }
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('mobile-feedback').textContent = `❌ Incorrect, it was ${correcto}`;
+        resaltaCruz('red');
+        resultados.push(false);
+        if (resultados.length > 10) resultados.shift();
+        erroresPorCelda[filaActual-1][colActual-1]++;
+        actualizarStats(tiempoRespuesta);
+        esperando = false;
+        mostrarModalIncorrecto(`Incorrect, it was ${correcto}`);
+        timeoutReto = setTimeout(nuevoReto, 2000);
+      }
+
+      // Si corresponde, activa la secuencia de repetición (esto sobreescribe cualquier secuencia previa)
+      if (activarSecuencia) {
+        activarRepeticion(filaActual, colActual);
+      }
+    }
+
     function nuevoReto() {
       if (!juegoIniciado) {
         limpiarMatriz();
         ocultarCruz();
+        updateMobileChallenge();
         return;
       }
       if (timeoutReto) {
@@ -924,6 +1238,9 @@
         [filaActual, colActual] = elegirCeldaPorErrores();
       }
 
+      // Update mobile challenge display
+      updateMobileChallenge();
+
       // Resalta fila
       document.querySelectorAll('#matriz tbody tr').forEach((tr, idx) => {
         if (idx === filaActual - 1) tr.classList.add('highlight-row');
@@ -946,13 +1263,17 @@
         esperando = true;
         tiempoInicio = Date.now();
         setTimeout(() => {
-          document.getElementById('cell-input').focus();
+          const cellInput = document.getElementById('cell-input');
+          if (cellInput) cellInput.focus();
         }, 50);
-        document.getElementById('cell-input').onkeydown = function(e) {
-          if (e.key === 'Enter') {
-            verificarRespuesta();
-          }
-        };
+        const cellInputHandler = document.getElementById('cell-input');
+        if (cellInputHandler) {
+          cellInputHandler.onkeydown = function(e) {
+            if (e.key === 'Enter') {
+              verificarRespuesta();
+            }
+          };
+        }
       }
     }
 
@@ -961,51 +1282,9 @@
       const input = document.getElementById('cell-input');
       if (!input) return;
       const valor = parseInt(input.value, 10);
-      const correcto = filaActual * colActual;
-      let celda = document.querySelector('#matriz td[data-row="'+filaActual+'"][data-col="'+colActual+'"]');
-      if (!celda) return;
-      let tiempoRespuesta = tiempoInicio ? (Date.now() - tiempoInicio) / 1000 : null;
-      if (tiempoRespuesta !== null) {
-        tiempos.push(tiempoRespuesta);
-        if (tiempos.length > 10) tiempos.shift();
-      }
-
-      // --- Nueva lógica de repetición ---
-      let activarSecuencia = false;
-      if (valor !== correcto || (tiempoRespuesta !== null && tiempoRespuesta > 6)) {
-        activarSecuencia = true;
-      }
-
-      if (valor === correcto) {
-        celda.innerHTML = correcto;
-        celda.classList.remove('target');
-        celda.classList.add('correct');
-        document.getElementById('feedback').textContent = '🎉 Correct! Well done!';
-        resaltaCruz('green');
-        resultados.push(true);
-        if (resultados.length > 10) resultados.shift();
-        actualizarStats(tiempoRespuesta);
-        esperando = false;
-        timeoutReto = setTimeout(nuevoReto, 1000);
-      } else {
-        celda.innerHTML = valor || '';
-        celda.classList.remove('target');
-        celda.classList.add('incorrect');
-        document.getElementById('feedback').textContent = '';
-        resaltaCruz('red');
-        resultados.push(false);
-        if (resultados.length > 10) resultados.shift();
-        erroresPorCelda[filaActual-1][colActual-1]++;
-        actualizarStats(tiempoRespuesta);
-        esperando = false;
-        mostrarModalIncorrecto(`Incorrect, it was ${correcto}`);
-        timeoutReto = setTimeout(nuevoReto, 1000);
-      }
-
-      // Si corresponde, activa la secuencia de repetición (esto sobreescribe cualquier secuencia previa)
-      if (activarSecuencia) {
-        activarRepeticion(filaActual, colActual);
-      }
+      
+      // Call the common verification logic
+      verificarRespuestaCommon(valor);
     }
 
     // Modal simple para mostrar el error
@@ -1053,6 +1332,10 @@
       document.getElementById('porcentaje-correctas').textContent = "✅ Last 10: -- % correct";
       limpiarMatriz();
       ocultarCruz();
+      updateMobileChallenge();
+      
+      // Remove mobile game active class
+      document.body.classList.remove('mobile-game-active');
     }
 
     // Al cargar, oculta la cruz y muestra el botón de inicio
@@ -1067,6 +1350,19 @@
       document.getElementById('ultimo-tiempo').textContent = "⚡ Last challenge: -- s";
       // Make sure the reset button is visible on load
       document.getElementById('reset-btn').style.display = '';
+      
+      // Initialize mobile challenge display
+      updateMobileChallenge();
+      
+      // Add Enter key listener for mobile input
+      const mobileInput = document.getElementById('mobile-challenge-input');
+      if (mobileInput) {
+        mobileInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            verificarRespuestaMobile();
+          }
+        });
+      }
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
