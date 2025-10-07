@@ -402,6 +402,67 @@
       100% { transform: scale(1) translateY(0) rotate(0deg);}
     }
     
+    /* User Registration System Styles */
+    #user-selector {
+      background: rgba(255,255,255,0.05);
+      padding: 1em;
+      border-radius: 15px;
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+    
+    #user-selector input[type="radio"] {
+      margin: 0;
+      transform: scale(1.2);
+    }
+    
+    #user-selector label {
+      color: white;
+      font-weight: 600;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    #existing-users {
+      border: 3px solid #667eea;
+      border-radius: 15px;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 600;
+      color: #2d3436;
+      background: white;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: clamp(8px, 1vh, 10px) clamp(12px, 1.5vw, 15px);
+    }
+    
+    #existing-users:focus {
+      outline: none;
+      border-color: #f093fb;
+      box-shadow: 0 0 15px rgba(240, 147, 251, 0.5);
+      transform: scale(1.02);
+    }
+    
+    #user-stats {
+      color: white;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .user-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 0.2em 0.6em;
+      border-radius: 12px;
+      font-size: 0.8em;
+      font-weight: 600;
+      margin-left: 0.5em;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
     .correct {
       background: linear-gradient(135deg, #55efc4 0%, #00b894 100%) !important;
       color: white !important;
@@ -709,8 +770,27 @@
     <div id="left-panel">
       <div id="juego-controls">
         <div style="margin-bottom: 1.5em;">
-          <label for="nombre-jugador" style="font-weight:bold;">👤 Name:</label>
-          <input type="text" id="nombre-jugador" style="font-size:1.1em; width: 100%;" placeholder="Your name..." autocomplete="off">
+          <label for="user-selector" style="font-weight:bold;">👤 Player:</label>
+          <div id="user-selector" style="margin-top: 0.5em;">
+            <div style="display: flex; gap: 0.5em; margin-bottom: 0.5em;">
+              <input type="radio" id="existing-user" name="user-type" value="existing" style="margin-right: 0.3em;">
+              <label for="existing-user" style="font-weight: normal;">Select existing player</label>
+              <input type="radio" id="new-user" name="user-type" value="new" checked style="margin-left: 1em; margin-right: 0.3em;">
+              <label for="new-user" style="font-weight: normal;">New player</label>
+            </div>
+            
+            <select id="existing-users" style="font-size:1.1em; width: 100%; margin-bottom: 0.5em; display: none;">
+              <option value="">-- Select a player --</option>
+            </select>
+            
+            <input type="text" id="nombre-jugador" style="font-size:1.1em; width: 100%;" placeholder="Enter new player name..." autocomplete="off">
+            
+            <div id="user-stats" style="margin-top: 0.5em; padding: 0.5em; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.9em; display: none;">
+              <div>🎮 <strong>Sessions played:</strong> <span id="user-sessions">0</span></div>
+              <div>🏆 <strong>Personal best:</strong> <span id="user-best">--</span></div>
+              <div>📅 <strong>Last played:</strong> <span id="user-last-played">Never</span></div>
+            </div>
+          </div>
         </div>
         <button id="start-btn" onclick="iniciarJuego()">🚀 Start Game!</button>
         <button id="reset-btn" onclick="reiniciarJuego()">🔄 Reset Timer</button>
@@ -769,6 +849,197 @@
     </div>
   </div>
   <script>
+    // ============= USER REGISTRATION SYSTEM =============
+    
+    // User management variables
+    let currentUser = null;
+    let usersDatabase = {};
+    
+    // Load users from localStorage
+    function loadUsersDatabase() {
+      try {
+        const stored = localStorage.getItem('multiplicationGameUsers');
+        if (stored) {
+          usersDatabase = JSON.parse(stored);
+        }
+      } catch (error) {
+        console.error('Error loading users database:', error);
+        usersDatabase = {};
+      }
+    }
+    
+    // Save users to localStorage
+    function saveUsersDatabase() {
+      try {
+        localStorage.setItem('multiplicationGameUsers', JSON.stringify(usersDatabase));
+      } catch (error) {
+        console.error('Error saving users database:', error);
+      }
+    }
+    
+    // Create or get user record
+    function createOrGetUser(username) {
+      if (!usersDatabase[username]) {
+        usersDatabase[username] = {
+          name: username,
+          createdAt: new Date().toISOString(),
+          sessions: [],
+          personalBest: null,
+          totalSessions: 0,
+          lastPlayed: null
+        };
+      }
+      return usersDatabase[username];
+    }
+    
+    // Update user dropdown with registered users
+    function updateUserDropdown() {
+      const dropdown = document.getElementById('existing-users');
+      dropdown.innerHTML = '<option value="">-- Select a player --</option>';
+      
+      const users = Object.keys(usersDatabase).sort();
+      users.forEach(username => {
+        const user = usersDatabase[username];
+        const option = document.createElement('option');
+        option.value = username;
+        option.textContent = username;
+        if (user.personalBest) {
+          option.textContent += ` (Best: ${user.personalBest.toFixed(1)})`;
+        }
+        dropdown.appendChild(option);
+      });
+    }
+    
+    // Show user statistics
+    function showUserStats(username) {
+      const user = usersDatabase[username];
+      if (!user) return;
+      
+      document.getElementById('user-sessions').textContent = user.totalSessions;
+      document.getElementById('user-best').textContent = user.personalBest ? user.personalBest.toFixed(1) : '--';
+      document.getElementById('user-last-played').textContent = user.lastPlayed ? 
+        new Date(user.lastPlayed).toLocaleDateString() : 'Never';
+      document.getElementById('user-stats').style.display = 'block';
+    }
+    
+    // Hide user statistics
+    function hideUserStats() {
+      document.getElementById('user-stats').style.display = 'none';
+    }
+    
+    // Handle user type selection
+    function handleUserTypeChange() {
+      const existingRadio = document.getElementById('existing-user');
+      const newRadio = document.getElementById('new-user');
+      const dropdown = document.getElementById('existing-users');
+      const nameInput = document.getElementById('nombre-jugador');
+      
+      if (existingRadio.checked) {
+        dropdown.style.display = 'block';
+        nameInput.style.display = 'none';
+        nameInput.value = '';
+        hideUserStats();
+        currentUser = null;
+      } else {
+        dropdown.style.display = 'none';
+        nameInput.style.display = 'block';
+        dropdown.value = '';
+        hideUserStats();
+        currentUser = null;
+      }
+    }
+    
+    // Handle existing user selection
+    function handleExistingUserSelection() {
+      const dropdown = document.getElementById('existing-users');
+      const username = dropdown.value;
+      
+      if (username) {
+        currentUser = createOrGetUser(username);
+        showUserStats(username);
+        // Update global jugador variable for compatibility
+        jugador = username;
+      } else {
+        currentUser = null;
+        hideUserStats();
+        jugador = "";
+      }
+    }
+    
+    // Handle new user name input
+    function handleNewUserInput() {
+      const nameInput = document.getElementById('nombre-jugador');
+      const username = nameInput.value.trim();
+      
+      if (username) {
+        // Check if user already exists
+        if (usersDatabase[username]) {
+          // Show warning that user exists
+          nameInput.style.borderColor = '#ff6b6b';
+          nameInput.title = 'This player already exists. Switch to "Select existing player" to choose them.';
+        } else {
+          nameInput.style.borderColor = '#667eea';
+          nameInput.title = '';
+        }
+        
+        // Update global jugador variable for compatibility
+        jugador = username;
+        currentUser = null; // Will be created when game starts
+      } else {
+        jugador = "";
+        currentUser = null;
+      }
+    }
+    
+    // Save user session data
+    function saveUserSession(username, score, sessionData) {
+      const user = createOrGetUser(username);
+      
+      // Add session to history
+      const session = {
+        date: new Date().toISOString(),
+        score: score,
+        accuracy: sessionData.accuracy,
+        averageTime: sessionData.averageTime,
+        totalTime: sessionData.totalTime,
+        challenges: sessionData.challenges
+      };
+      
+      user.sessions.push(session);
+      user.totalSessions++;
+      user.lastPlayed = session.date;
+      
+      // Update personal best
+      if (!user.personalBest || score > user.personalBest) {
+        user.personalBest = score;
+      }
+      
+      // Keep only last 50 sessions to avoid localStorage bloat
+      if (user.sessions.length > 50) {
+        user.sessions = user.sessions.slice(-50);
+      }
+      
+      saveUsersDatabase();
+      currentUser = user;
+    }
+    
+    // Initialize user system
+    function initializeUserSystem() {
+      loadUsersDatabase();
+      updateUserDropdown();
+      
+      // Event listeners
+      document.getElementById('existing-user').addEventListener('change', handleUserTypeChange);
+      document.getElementById('new-user').addEventListener('change', handleUserTypeChange);
+      document.getElementById('existing-users').addEventListener('change', handleExistingUserSelection);
+      document.getElementById('nombre-jugador').addEventListener('input', handleNewUserInput);
+      
+      // Initialize state
+      handleUserTypeChange();
+    }
+    
+    // ============= END USER REGISTRATION SYSTEM =============
+    
     let filaActual = null, colActual = null, esperando = false;
     let timeoutReto = null;
     let tiempoInicio = null;
@@ -784,11 +1055,6 @@
     // Cronómetro digital
     let cronometroInterval = null;
     let tiempoInicioCronometro = null;
-
-    // Actualiza el nombre del jugador en variable global
-    document.getElementById('nombre-jugador').addEventListener('input', function() {
-      jugador = this.value.trim();
-    });
 
     function iniciarCronometro() {
       tiempoInicioCronometro = Date.now();
@@ -913,6 +1179,23 @@
         let highscorePrevio = highScore;
         if (highScore === null || score > highScore) {
           highScore = score;
+          
+          // Save user session data if user is logged in
+          if (currentUser && jugador) {
+            const sessionData = {
+              accuracy: porcentaje,
+              averageTime: prom,
+              totalTime: (Date.now() - tiempoInicioCronometro) / 1000,
+              challenges: resultados.length
+            };
+            saveUserSession(jugador, score, sessionData);
+            
+            // Update user stats display if visible
+            if (document.getElementById('user-stats').style.display !== 'none') {
+              showUserStats(jugador);
+            }
+          }
+          
           // Efecto visual: rojo, titilar, saltar y resplandor
           highscoreElem.classList.remove('highscore-flash'); // reset animation
           void highscoreElem.offsetWidth; // force reflow
@@ -921,10 +1204,20 @@
             highscoreElem.classList.remove('highscore-flash');
           }, 1000);
         }
-        highscoreElem.textContent = `🏆 Higher Score: ${highScore.toFixed(1)}`;
+        
+        // Show personal best vs session best
+        if (currentUser && currentUser.personalBest && currentUser.personalBest !== highScore) {
+          highscoreElem.textContent = `🏆 Session: ${highScore.toFixed(1)} | Personal: ${currentUser.personalBest.toFixed(1)}`;
+        } else {
+          highscoreElem.textContent = `🏆 Higher Score: ${highScore.toFixed(1)}`;
+        }
       } else {
         highScore = null;
-        highscoreElem.textContent = "🏆 Higher Score: --";
+        if (currentUser && currentUser.personalBest) {
+          highscoreElem.textContent = `🏆 Personal Best: ${currentUser.personalBest.toFixed(1)}`;
+        } else {
+          highscoreElem.textContent = "🏆 Higher Score: --";
+        }
         highscoreElem.classList.remove('highscore-flash');
       }
       
@@ -946,6 +1239,19 @@
     }
 
     function iniciarJuego() {
+      // Validate user selection
+      if (!jugador || jugador.trim() === '') {
+        alert('⚠️ Please enter your name or select an existing player before starting!');
+        return;
+      }
+      
+      // Create or get user record for new players
+      if (!currentUser) {
+        currentUser = createOrGetUser(jugador.trim());
+        saveUsersDatabase();
+        updateUserDropdown();
+      }
+      
       document.getElementById('start-btn').style.display = 'none';
       juegoIniciado = true;
       iniciarCronometro();
@@ -1387,6 +1693,11 @@
         console.error(err);
       });
     };
+    
+    // Initialize user system when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeUserSystem();
+    });
   </script>
 </body>
 </html>
