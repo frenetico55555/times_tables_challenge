@@ -1,6 +1,6 @@
 # 🎮 Multiplication Tables Game (1 to 12) ⭐
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Platform](https://img.shields.io/badge/platform-Web-orange.svg)
 
@@ -228,7 +228,7 @@ If you find this helpful, please:
 
 ## 🌟 Version
 
-**Current Version**: 1.0.0 (Initial Release)  
+**Current Version**: 1.0.1 (Mobile UX Optimization)  
 **Release Date**: October 5, 2025
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.

@@ -5,11 +5,48 @@ All notable changes to the Multiplication Tables Game will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-10-06
+
+### 🎯 Mobile UX Optimization
+
+This release focuses on dramatically improving the mobile user experience with streamlined gameplay and better touch interaction.
+
+#### ✨ Enhanced Features
+
+- **Visible ENTER Button on Mobile**: Added prominent ENTER button for easy answer submission on touch devices
+- **Auto-Submit on 3 Digits**: Automatic submission when 3-digit answers are entered, reducing need for manual submission
+- **Persistent iOS Keyboard**: Enhanced keyboard management with multiple refocus attempts to prevent iOS keyboard from hiding
+- **Improved Touch Handling**: Better button touch response and keyboard persistence during gameplay
+- **Compact Mobile Stats**: Streamlined statistics display optimized for smaller screens
+- **Reduced Visual Clutter**: Hidden decorative stars on mobile devices to focus attention on gameplay
+- **Optimized Layout**: Better element sizing and positioning for mobile touch targets
+
+#### 🎨 Mobile Design Improvements
+
+- **Responsive Button Sizing**: ENTER button scales appropriately for mobile screens
+- **Touch-Friendly Controls**: Larger touch targets and better spacing for fingers
+- **Clean Mobile Interface**: Removed distracting elements during mobile gameplay
+- **Improved Keyboard Flow**: Seamless keyboard interaction without unexpected hiding
+
+#### 🛠️ Technical Enhancements
+
+- **Multiple Focus Attempts**: Robust keyboard focus system for various mobile browsers
+- **Enhanced Event Handling**: Improved button press detection and response
+- **Mobile-Specific CSS**: Targeted styles for mobile devices and small screens
+- **Performance Optimization**: Faster response times on mobile devices
+
+#### 📱 Mobile-First Improvements
+
+- **Immediate Game Start**: Faster entry into gameplay on mobile devices
+- **Streamlined UI Flow**: Reduced steps between game start and active play
+- **Better Mobile Navigation**: Improved touch navigation throughout the app
+
 ## [1.0.0] - 2025-10-05
 
 ### 🎉 Initial Release
 
 #### ✨ Features
+
 - **Interactive Multiplication Table Game (1-12)**: Complete 12x12 multiplication table with dynamic challenges
 - **Smart Error Tracking**: Adaptive algorithm that focuses on cells where the user makes more mistakes
 - **Repetition System**: Special sequence of 15 challenges activated when errors occur or response time > 6 seconds
