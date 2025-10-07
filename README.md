@@ -28,12 +28,14 @@ This is a **web-based multiplication game** created to help kids (ages 6-12) lea
 ## 🚀 Quick Start
 
 ### Option 1: Direct Use
+
 1. Download or clone this repository
 2. Open `index.html` in any modern web browser
 3. Enter your name and click "🚀 Start Game!"
 4. Start solving multiplication problems!
 
 ### Option 2: Try it Online
+
 Visit: **[https://frenetico55555.github.io/times_tables_challenge](https://frenetico55555.github.io/times_tables_challenge)**
 
 ---
@@ -51,7 +53,8 @@ Visit: **[https://frenetico55555.github.io/times_tables_challenge](https://frene
 ### 🎯 Scoring System
 
 Your score is calculated as:
-```
+
+```text
 Score = (Accuracy Percentage / Average Time) × 100
 ```
 
@@ -91,6 +94,7 @@ The game uses an intelligent system to help you learn efficiently:
 ## 🎨 Design Features
 
 ### Visual Elements
+
 - **Animated Gradient Background** - Purple-pink shifting colors
 - **Floating Table** - Subtle up-and-down animation
 - **Twinkling Stars** - Decorative elements throughout ⭐✨🌟💫
@@ -98,6 +102,7 @@ The game uses an intelligent system to help you learn efficiently:
 - **Smooth Transitions** - All interactions have polished animations
 
 ### Responsive Design
+
 - **Desktop (1400px+)**: Two-column layout with optimal spacing
 - **Laptop (1024-1400px)**: Balanced two-column layout
 - **Tablet (700-1024px)**: Vertical layout, stats in 2 columns
@@ -108,6 +113,7 @@ The game uses an intelligent system to help you learn efficiently:
 ## 🛠️ Technical Details
 
 ### Technologies Used
+
 - **HTML5** - Structure and content
 - **CSS3** - Styling, animations, and responsive design
   - CSS Grid & Flexbox for layout
@@ -118,6 +124,7 @@ The game uses an intelligent system to help you learn efficiently:
 - **HTML2Canvas** - Screenshot functionality (loaded via CDN)
 
 ### Browser Support
+
 - ✅ Chrome (recommended)
 - ✅ Firefox
 - ✅ Safari
@@ -127,7 +134,8 @@ The game uses an intelligent system to help you learn efficiently:
 **Minimum Requirements**: Any modern browser with ES6 support
 
 ### File Structure
-```
+
+```text
 times_tables_challenge/
 ├── index.html          # Main application (all-in-one file)
 ├── README.md           # This file
@@ -141,9 +149,11 @@ times_tables_challenge/
 ## 📸 Screenshots
 
 ### Desktop View
+
 The game features a clean two-column layout with controls on the left and the multiplication table on the right.
 
 ### Mobile View
+
 Fully responsive design adapts to smaller screens with a vertical layout.
 
 ---
@@ -158,6 +168,7 @@ This game is perfect for:
 - **Tutors** - Supplementary tool for math tutoring sessions
 
 ### Recommended Usage
+
 - **Daily Practice**: 10-15 minutes per day
 - **Goal Setting**: Challenge kids to beat their high score
 - **Rewards System**: Use screenshots as proof of achievement for rewards
@@ -167,15 +178,17 @@ This game is perfect for:
 
 ## 🤝 Contributing
 
-We welcome feedback and suggestions! 
+We welcome feedback and suggestions!
 
 ### How to Contribute
+
 1. Try the game and identify areas for improvement
 2. Click the "💡 Send Suggestions" button in the app
 3. Fill out the Google Form with your feedback
 4. Or open an issue on GitHub
 
 ### Planned Features
+
 See [CHANGELOG.md](CHANGELOG.md) for our roadmap of upcoming features.
 
 ---
@@ -184,7 +197,8 @@ See [CHANGELOG.md](CHANGELOG.md) for our roadmap of upcoming features.
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-### What this means:
+### What this means
+
 - ✅ Free to use
 - ✅ Free to modify
 - ✅ Free to distribute
@@ -197,7 +211,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 **Created by**: Rodrigo Figueroa  
 **Location**: Chile 🇨🱼  
-**Contact**: rfiguerc@uc.cl  
+**Contact**: <rfiguerc@uc.cl>  
 **GitHub**: [@frenetico55555](https://github.com/frenetico55555)
 
 ### The Story
@@ -219,6 +233,7 @@ When they shared it with their friends, other parents asked for access to the ga
 ## 📞 Support
 
 If you find this helpful, please:
+
 - ⭐ Star this repository
 - 🐛 Report bugs via GitHub Issues
 - 💡 Share suggestions via the in-app form
@@ -235,10 +250,6 @@ See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
 ---
 
-<div align="center">
-
-**Made with ❤️ for kids learning multiplication**
+### Made with ❤️ for kids learning multiplication
 
 [Report Bug](https://github.com/frenetico55555/times_tables_challenge/issues) · [Request Feature](https://forms.gle/AvHgLfGM7LdmSfbt6) · [View Demo](https://frenetico55555.github.io/times_tables_challenge)
-
-</div>
