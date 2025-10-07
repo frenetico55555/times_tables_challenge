@@ -356,6 +356,25 @@
       transform: scale(1.02);
     }
     
+    input[type="password"] {
+      font-size: clamp(0.95em, 1.1vw, 1.1em);
+      padding: clamp(8px, 1vh, 10px) clamp(12px, 1.5vw, 15px);
+      border: 3px solid #667eea;
+      border-radius: 15px;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 600;
+      color: #2d3436;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #f093fb;
+      box-shadow: 0 0 15px rgba(240, 147, 251, 0.5);
+      transform: scale(1.02);
+    }
+    
     #feedback {
       font-size: clamp(1em, 1.2vw, 1.2em);
       font-weight: 700;
@@ -461,6 +480,26 @@
       font-weight: 600;
       margin-left: 0.5em;
       text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    #password-section {
+      background: rgba(255,255,255,0.03);
+      padding: 0.8em;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      margin-top: 0.5em;
+    }
+    
+    .password-error {
+      color: #ff6b6b !important;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+      font-weight: 600;
+    }
+    
+    .password-success {
+      color: #55efc4 !important;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+      font-weight: 600;
     }
     
     .correct {
@@ -783,7 +822,15 @@
               <option value="">-- Select a player --</option>
             </select>
             
-            <input type="text" id="nombre-jugador" style="font-size:1.1em; width: 100%;" placeholder="Enter new player name..." autocomplete="off">
+            <input type="text" id="nombre-jugador" style="font-size:1.1em; width: 100%; margin-bottom: 0.5em;" placeholder="Enter new player name..." autocomplete="off">
+            
+            <div id="password-section" style="display: none;">
+              <label for="user-password" style="font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 0.3em;">🔐 Simple Password:</label>
+              <input type="password" id="user-password" style="font-size:1.1em; width: 100%; margin-bottom: 0.3em;" placeholder="Enter your simple password..." autocomplete="off">
+              <div style="font-size: 0.8em; color: rgba(255,255,255,0.8); margin-bottom: 0.5em;">
+                💡 <em>Use something simple like your age, favorite number, or pet's name</em>
+              </div>
+            </div>
             
             <div id="user-stats" style="margin-top: 0.5em; padding: 0.5em; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.9em; display: none;">
               <div>🎮 <strong>Sessions played:</strong> <span id="user-sessions">0</span></div>
@@ -878,10 +925,14 @@
     }
     
     // Create or get user record
-    function createOrGetUser(username) {
+    function createOrGetUser(username, password = null) {
       if (!usersDatabase[username]) {
+        if (!password) {
+          throw new Error('Password required for new user');
+        }
         usersDatabase[username] = {
           name: username,
+          password: password, // Store simple password (in real app would be hashed)
           createdAt: new Date().toISOString(),
           sessions: [],
           personalBest: null,
@@ -890,6 +941,13 @@
         };
       }
       return usersDatabase[username];
+    }
+    
+    // Verify user password
+    function verifyUserPassword(username, password) {
+      const user = usersDatabase[username];
+      if (!user) return false;
+      return user.password === password;
     }
     
     // Update user dropdown with registered users
@@ -933,42 +991,105 @@
       const newRadio = document.getElementById('new-user');
       const dropdown = document.getElementById('existing-users');
       const nameInput = document.getElementById('nombre-jugador');
+      const passwordSection = document.getElementById('password-section');
       
       if (existingRadio.checked) {
         dropdown.style.display = 'block';
         nameInput.style.display = 'none';
+        passwordSection.style.display = 'none';
         nameInput.value = '';
+        clearPasswordField();
         hideUserStats();
         currentUser = null;
       } else {
         dropdown.style.display = 'none';
         nameInput.style.display = 'block';
+        passwordSection.style.display = 'none'; // Will show when name is entered
         dropdown.value = '';
+        clearPasswordField();
         hideUserStats();
         currentUser = null;
       }
+    }
+    
+    // Clear password field and reset styling
+    function clearPasswordField() {
+      const passwordInput = document.getElementById('user-password');
+      passwordInput.value = '';
+      passwordInput.style.borderColor = '#667eea';
+      passwordInput.style.backgroundColor = 'white';
     }
     
     // Handle existing user selection
     function handleExistingUserSelection() {
       const dropdown = document.getElementById('existing-users');
       const username = dropdown.value;
+      const passwordSection = document.getElementById('password-section');
       
       if (username) {
-        currentUser = createOrGetUser(username);
-        showUserStats(username);
-        // Update global jugador variable for compatibility
-        jugador = username;
+        passwordSection.style.display = 'block';
+        const passwordInput = document.getElementById('user-password');
+        passwordInput.placeholder = 'Enter your password to continue...';
+        clearPasswordField();
+        hideUserStats();
+        currentUser = null;
+        jugador = "";
       } else {
+        passwordSection.style.display = 'none';
         currentUser = null;
         hideUserStats();
         jugador = "";
       }
     }
     
+    // Handle password input for existing users
+    function handlePasswordInput() {
+      const dropdown = document.getElementById('existing-users');
+      const nameInput = document.getElementById('nombre-jugador');
+      const passwordInput = document.getElementById('user-password');
+      const existingRadio = document.getElementById('existing-user');
+      
+      const password = passwordInput.value;
+      
+      if (existingRadio.checked) {
+        // Existing user password verification
+        const username = dropdown.value;
+        if (username && password) {
+          if (verifyUserPassword(username, password)) {
+            passwordInput.style.borderColor = '#55efc4';
+            passwordInput.style.backgroundColor = 'rgba(85, 239, 196, 0.1)';
+            currentUser = usersDatabase[username];
+            showUserStats(username);
+            jugador = username;
+          } else {
+            passwordInput.style.borderColor = '#ff6b6b';
+            passwordInput.style.backgroundColor = 'rgba(255, 107, 107, 0.1)';
+            currentUser = null;
+            hideUserStats();
+            jugador = "";
+          }
+        }
+      } else {
+        // New user password creation
+        const username = nameInput.value.trim();
+        if (username && password) {
+          if (password.length >= 2) {
+            passwordInput.style.borderColor = '#55efc4';
+            passwordInput.style.backgroundColor = 'rgba(85, 239, 196, 0.1)';
+            jugador = username;
+          } else {
+            passwordInput.style.borderColor = '#ff6b6b';
+            passwordInput.style.backgroundColor = 'rgba(255, 107, 107, 0.1)';
+            jugador = "";
+          }
+        }
+      }
+    }
+    
     // Handle new user name input
     function handleNewUserInput() {
       const nameInput = document.getElementById('nombre-jugador');
+      const passwordSection = document.getElementById('password-section');
       const username = nameInput.value.trim();
       
       if (username) {
@@ -976,16 +1097,31 @@
         if (usersDatabase[username]) {
           // Show warning that user exists
           nameInput.style.borderColor = '#ff6b6b';
+          nameInput.style.backgroundColor = 'rgba(255, 107, 107, 0.1)';
           nameInput.title = 'This player already exists. Switch to "Select existing player" to choose them.';
+          passwordSection.style.display = 'none';
+          jugador = "";
+          currentUser = null;
         } else {
           nameInput.style.borderColor = '#667eea';
+          nameInput.style.backgroundColor = 'white';
           nameInput.title = '';
+          passwordSection.style.display = 'block';
+          const passwordInput = document.getElementById('user-password');
+          passwordInput.placeholder = 'Create a simple password (at least 2 characters)...';
+          clearPasswordField();
+          
+          // Update global jugador variable only if password is also valid
+          const password = passwordInput.value;
+          if (password && password.length >= 2) {
+            jugador = username;
+          } else {
+            jugador = "";
+          }
         }
-        
-        // Update global jugador variable for compatibility
-        jugador = username;
         currentUser = null; // Will be created when game starts
       } else {
+        passwordSection.style.display = 'none';
         jugador = "";
         currentUser = null;
       }
@@ -993,7 +1129,11 @@
     
     // Save user session data
     function saveUserSession(username, score, sessionData) {
-      const user = createOrGetUser(username);
+      const user = currentUser || usersDatabase[username];
+      if (!user) {
+        console.error('Cannot save session: user not found');
+        return;
+      }
       
       // Add session to history
       const session = {
@@ -1033,6 +1173,7 @@
       document.getElementById('new-user').addEventListener('change', handleUserTypeChange);
       document.getElementById('existing-users').addEventListener('change', handleExistingUserSelection);
       document.getElementById('nombre-jugador').addEventListener('input', handleNewUserInput);
+      document.getElementById('user-password').addEventListener('input', handlePasswordInput);
       
       // Initialize state
       handleUserTypeChange();
@@ -1239,17 +1380,51 @@
     }
 
     function iniciarJuego() {
-      // Validate user selection
+      const passwordInput = document.getElementById('user-password');
+      const existingRadio = document.getElementById('existing-user');
+      const password = passwordInput.value;
+      
+      // Validate user and password
       if (!jugador || jugador.trim() === '') {
         alert('⚠️ Please enter your name or select an existing player before starting!');
         return;
       }
       
-      // Create or get user record for new players
-      if (!currentUser) {
-        currentUser = createOrGetUser(jugador.trim());
-        saveUsersDatabase();
-        updateUserDropdown();
+      if (!password || password.trim() === '') {
+        alert('🔐 Please enter your password to continue!');
+        passwordInput.focus();
+        return;
+      }
+      
+      if (existingRadio.checked) {
+        // Verify existing user password
+        if (!currentUser) {
+          alert('❌ Incorrect password! Please check your password and try again.');
+          passwordInput.focus();
+          passwordInput.select();
+          return;
+        }
+      } else {
+        // Create new user with password
+        if (password.length < 2) {
+          alert('🔐 Password must be at least 2 characters long!');
+          passwordInput.focus();
+          return;
+        }
+        
+        if (usersDatabase[jugador.trim()]) {
+          alert('⚠️ This player name already exists! Please switch to "Select existing player" or choose a different name.');
+          return;
+        }
+        
+        try {
+          currentUser = createOrGetUser(jugador.trim(), password.trim());
+          saveUsersDatabase();
+          updateUserDropdown();
+        } catch (error) {
+          alert('❌ Error creating user: ' + error.message);
+          return;
+        }
       }
       
       document.getElementById('start-btn').style.display = 'none';
