@@ -1,3 +1,24 @@
+## [1.1.0] - 2025-10-07
+
+### 🆕 Multi-user, Secure Progress & Visual History
+
+#### ✨ Nuevas Funciones
+
+- 👤 Registro de usuario y selección de jugador
+- 🔐 Protección por contraseña sencilla para cada usuario
+- 📈 Panel de historial de scores con fechas de sesión
+- ✨ Visualización sparkline (mini-gráfico) de la evolución de scores
+- 🏅 Seguimiento de mejor score y cantidad de partidas por usuario
+- 🧑‍🎓 Mensajes claros y accesibles para niños y padres
+- 🌍 Compatibilidad total con computadoras y móviles
+
+#### 🛠️ Mejoras Técnicas
+
+- Accesibilidad mejorada en botones y paneles
+- Traducción y coherencia en todos los textos
+- Pulido final de experiencia y validación de errores
+
+---
 # Changelog
 
 All notable changes to the Multiplication Tables Game will be documented in this file.

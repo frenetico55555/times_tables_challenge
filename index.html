@@ -833,15 +833,21 @@
             </div>
             
             <div id="user-stats" style="margin-top: 0.5em; padding: 0.5em; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.9em; display: none;">
-              <div>🎮 <strong>Sessions played:</strong> <span id="user-sessions">0</span></div>
-              <div>🏆 <strong>Personal best:</strong> <span id="user-best">--</span></div>
-              <div>📅 <strong>Last played:</strong> <span id="user-last-played">Never</span></div>
+              <div>🎮 <strong>Partidas jugadas:</strong> <span id="user-sessions">0</span></div>
+              <div>🏆 <strong>Mejor score:</strong> <span id="user-best">--</span></div>
+              <div>📅 <strong>Última vez:</strong> <span id="user-last-played">Nunca</span></div>
+            </div>
+            <div id="user-history-panel" style="margin-top: 0.5em; padding: 0.5em; background: rgba(255,255,255,0.08); border-radius: 8px; font-size: 0.9em; display: none; max-height: 180px; overflow-y: auto;">
+              <div style="font-weight: bold; margin-bottom: 0.3em;">📈 Evolución de tu Score</div>
+              <ul id="user-history-list" style="list-style: none; padding-left: 0; margin: 0;">
+                <!-- Score history will be populated here -->
+              </ul>
             </div>
           </div>
         </div>
         <button id="start-btn" onclick="iniciarJuego()">🚀 Start Game!</button>
-        <button id="reset-btn" onclick="reiniciarJuego()">🔄 Reset Timer</button>
-        <button id="screenshot-btn">📸 Take Screenshot</button>
+  <button id="reset-btn" onclick="reiniciarJuego()" aria-label="Reiniciar cronómetro" title="Reinicia el tiempo del juego">🔄 Reiniciar Tiempo</button>
+  <button id="screenshot-btn" aria-label="Tomar captura" title="Guarda una imagen del progreso">📸 Captura de Pantalla</button>
         <a href="https://forms.gle/AvHgLfGM7LdmSfbt6" target="_blank" rel="noopener" style="text-decoration:none;">
           <button type="button">💡 Send Suggestions</button>
         </a>
@@ -849,12 +855,12 @@
       </div>
       
       <div id="stats">
-        <span id="cronometro">⏱️ Total time: 00:00</span>
-        <span id="ultimo-tiempo">⚡ Last challenge: -- s</span>
-        <span id="promedio-tiempo">📊 Average: -- s</span>
-        <span id="porcentaje-correctas">✅ Last 10: -- % correct</span>
-        <span id="score">🎯 Score: --</span>
-        <span id="highscore">🏆 Higher Score: --</span>
+  <span id="cronometro">⏱️ Tiempo total: 00:00</span>
+  <span id="ultimo-tiempo">⚡ Último reto: -- s</span>
+  <span id="promedio-tiempo">📊 Promedio: -- s</span>
+  <span id="porcentaje-correctas">✅ Últimos 10: -- % correctas</span>
+  <span id="score">🎯 Score: --</span>
+  <span id="highscore">🏆 Mejor Score: --</span>
       </div>
     </div>
     
@@ -895,6 +901,32 @@
   </table>
     </div>
   </div>
+  <!-- Firebase Configuration -->
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+    import { getFirestore, collection, doc, getDoc, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhQvmDJG5XIwnvqlGuR-lJ5jYC0-TsLsM",
+      authDomain: "multiplication-game-247e4.firebaseapp.com",
+      projectId: "multiplication-game-247e4",
+      storageBucket: "multiplication-game-247e4.firebasestorage.app",
+      messagingSenderId: "36181569679",
+      appId: "1:36181569679:web:e8e4292f15644dd56000fa",
+      measurementId: "G-ENFV48G0KH"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    
+    // Make Firebase available globally
+    window.db = db;
+    window.firestore = { getDoc, setDoc, updateDoc, doc, collection };
+  </script>
+  
   <script>
     // ============= USER REGISTRATION SYSTEM =============
     
@@ -902,20 +934,68 @@
     let currentUser = null;
     let usersDatabase = {};
     
-    // Load users from localStorage
-    function loadUsersDatabase() {
+    // Load users from Firebase
+    async function loadUsersDatabase() {
       try {
-        const stored = localStorage.getItem('multiplicationGameUsers');
-        if (stored) {
-          usersDatabase = JSON.parse(stored);
-        }
+        const usersRef = window.firestore.collection(window.db, 'users');
+        // For now, we'll load users as needed when they try to login
+        console.log('Firebase ready for user operations');
       } catch (error) {
-        console.error('Error loading users database:', error);
-        usersDatabase = {};
+        console.error('Error connecting to Firebase:', error);
+        // Fallback to localStorage if Firebase fails
+        try {
+          const stored = localStorage.getItem('multiplicationGameUsers');
+          if (stored) {
+            usersDatabase = JSON.parse(stored);
+          }
+        } catch (localError) {
+          console.error('Error loading from localStorage:', localError);
+          usersDatabase = {};
+        }
       }
     }
     
-    // Save users to localStorage
+    // Save user to Firebase
+    async function saveUserToFirebase(username, userData) {
+      try {
+        const userRef = window.firestore.doc(window.db, 'users', username);
+        await window.firestore.setDoc(userRef, userData);
+        console.log('User saved to Firebase successfully');
+        return true;
+      } catch (error) {
+        console.error('Error saving to Firebase:', error);
+        // Fallback to localStorage
+        try {
+          usersDatabase[username] = userData;
+          localStorage.setItem('multiplicationGameUsers', JSON.stringify(usersDatabase));
+          console.log('User saved to localStorage as fallback');
+          return true;
+        } catch (localError) {
+          console.error('Error saving to localStorage:', localError);
+          return false;
+        }
+      }
+    }
+    
+    // Get user from Firebase
+    async function getUserFromFirebase(username) {
+      try {
+        const userRef = window.firestore.doc(window.db, 'users', username);
+        const userSnap = await window.firestore.getDoc(userRef);
+        
+        if (userSnap.exists()) {
+          return userSnap.data();
+        } else {
+          return null;
+        }
+      } catch (error) {
+        console.error('Error getting user from Firebase:', error);
+        // Fallback to localStorage
+        return usersDatabase[username] || null;
+      }
+    }
+    
+    // Save users to localStorage (fallback method)
     function saveUsersDatabase() {
       try {
         localStorage.setItem('multiplicationGameUsers', JSON.stringify(usersDatabase));
@@ -925,12 +1005,16 @@
     }
     
     // Create or get user record
-    function createOrGetUser(username, password = null) {
-      if (!usersDatabase[username]) {
+    async function createOrGetUser(username, password = null) {
+      // First try to get user from Firebase
+      let user = await getUserFromFirebase(username);
+      
+      if (!user) {
         if (!password) {
           throw new Error('Password required for new user');
         }
-        usersDatabase[username] = {
+        // Create new user
+        user = {
           name: username,
           password: password, // Store simple password (in real app would be hashed)
           createdAt: new Date().toISOString(),
@@ -939,33 +1023,64 @@
           totalSessions: 0,
           lastPlayed: null
         };
+        
+        // Save to Firebase
+        await saveUserToFirebase(username, user);
+        
+        // Also save to local database for immediate access
+        usersDatabase[username] = user;
+      } else {
+        // Also save to local database for immediate access
+        usersDatabase[username] = user;
       }
-      return usersDatabase[username];
+      
+      return user;
     }
     
     // Verify user password
-    function verifyUserPassword(username, password) {
-      const user = usersDatabase[username];
+    async function verifyUserPassword(username, password) {
+      const user = await getUserFromFirebase(username);
       if (!user) return false;
       return user.password === password;
     }
     
     // Update user dropdown with registered users
-    function updateUserDropdown() {
+    async function updateUserDropdown() {
       const dropdown = document.getElementById('existing-users');
       dropdown.innerHTML = '<option value="">-- Select a player --</option>';
       
-      const users = Object.keys(usersDatabase).sort();
-      users.forEach(username => {
-        const user = usersDatabase[username];
-        const option = document.createElement('option');
-        option.value = username;
-        option.textContent = username;
-        if (user.personalBest) {
-          option.textContent += ` (Best: ${user.personalBest.toFixed(1)})`;
-        }
-        dropdown.appendChild(option);
-      });
+      // Try to get users from Firebase first
+      try {
+        const usersRef = window.firestore.collection(window.db, 'users');
+        // For now, we'll use the local database and load users as needed
+        // In a full implementation, you might want to get all user names
+        
+        const users = Object.keys(usersDatabase).sort();
+        users.forEach(username => {
+          const user = usersDatabase[username];
+          const option = document.createElement('option');
+          option.value = username;
+          option.textContent = username;
+          if (user.personalBest) {
+            option.textContent += ` (Best: ${user.personalBest.toFixed(1)})`;
+          }
+          dropdown.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error updating user dropdown:', error);
+        // Fallback to localStorage data
+        const users = Object.keys(usersDatabase).sort();
+        users.forEach(username => {
+          const user = usersDatabase[username];
+          const option = document.createElement('option');
+          option.value = username;
+          option.textContent = username;
+          if (user.personalBest) {
+            option.textContent += ` (Best: ${user.personalBest.toFixed(1)})`;
+          }
+          dropdown.appendChild(option);
+        });
+      }
     }
     
     // Show user statistics
@@ -978,6 +1093,24 @@
       document.getElementById('user-last-played').textContent = user.lastPlayed ? 
         new Date(user.lastPlayed).toLocaleDateString() : 'Never';
       document.getElementById('user-stats').style.display = 'block';
+
+      // Poblar historial de scores
+      const historyPanel = document.getElementById('user-history-panel');
+      const historyList = document.getElementById('user-history-list');
+      if (user.sessions && user.sessions.length > 0) {
+        historyList.innerHTML = '';
+        // Mostrar los últimos 10 scores (más recientes primero)
+        user.sessions.slice(-10).reverse().forEach(session => {
+          const li = document.createElement('li');
+          const dateStr = new Date(session.date).toLocaleDateString();
+          li.textContent = `${dateStr}: ${session.score.toFixed(1)}`;
+          historyList.appendChild(li);
+        });
+        historyPanel.style.display = 'block';
+      } else {
+        historyList.innerHTML = '<li>No history yet</li>';
+        historyPanel.style.display = 'block';
+      }
     }
     
     // Hide user statistics
@@ -1021,12 +1154,20 @@
     }
     
     // Handle existing user selection
-    function handleExistingUserSelection() {
+    async function handleExistingUserSelection() {
       const dropdown = document.getElementById('existing-users');
       const username = dropdown.value;
       const passwordSection = document.getElementById('password-section');
       
       if (username) {
+        // Load user from Firebase if not in local database
+        if (!usersDatabase[username]) {
+          const user = await getUserFromFirebase(username);
+          if (user) {
+            usersDatabase[username] = user;
+          }
+        }
+        
         passwordSection.style.display = 'block';
         const passwordInput = document.getElementById('user-password');
         passwordInput.placeholder = 'Enter your password to continue...';
@@ -1043,7 +1184,7 @@
     }
     
     // Handle password input for existing users
-    function handlePasswordInput() {
+    async function handlePasswordInput() {
       const dropdown = document.getElementById('existing-users');
       const nameInput = document.getElementById('nombre-jugador');
       const passwordInput = document.getElementById('user-password');
@@ -1055,12 +1196,17 @@
         // Existing user password verification
         const username = dropdown.value;
         if (username && password) {
-          if (verifyUserPassword(username, password)) {
+          const isValid = await verifyUserPassword(username, password);
+          if (isValid) {
             passwordInput.style.borderColor = '#55efc4';
             passwordInput.style.backgroundColor = 'rgba(85, 239, 196, 0.1)';
-            currentUser = usersDatabase[username];
+            currentUser = await getUserFromFirebase(username);
+            usersDatabase[username] = currentUser;
             showUserStats(username);
             jugador = username;
+            // Mostrar historial y mejor score al iniciar sesión
+            document.getElementById('user-history-panel').style.display = 'block';
+            document.getElementById('user-stats').style.display = 'block';
           } else {
             passwordInput.style.borderColor = '#ff6b6b';
             passwordInput.style.backgroundColor = 'rgba(255, 107, 107, 0.1)';
@@ -1098,26 +1244,36 @@
           // Show warning that user exists
           nameInput.style.borderColor = '#ff6b6b';
           nameInput.style.backgroundColor = 'rgba(255, 107, 107, 0.1)';
-          nameInput.title = 'This player already exists. Switch to "Select existing player" to choose them.';
+          nameInput.title = 'Este jugador ya existe. Elige "Seleccionar jugador existente" para continuar.';
           passwordSection.style.display = 'none';
+          // Mensaje visual para niños
+          nameInput.setCustomValidity('Este nombre ya está registrado. Usa otro o selecciona el jugador existente.');
+          nameInput.reportValidity();
           jugador = "";
           currentUser = null;
         } else {
           nameInput.style.borderColor = '#667eea';
           nameInput.style.backgroundColor = 'white';
           nameInput.title = '';
+          nameInput.setCustomValidity('');
           passwordSection.style.display = 'block';
           const passwordInput = document.getElementById('user-password');
-          passwordInput.placeholder = 'Create a simple password (at least 2 characters)...';
+          passwordInput.placeholder = 'Crea una contraseña sencilla (mínimo 2 caracteres)...';
           clearPasswordField();
-          
-          // Update global jugador variable only if password is also valid
-          const password = passwordInput.value;
-          if (password && password.length >= 2) {
-            jugador = username;
-          } else {
+
+          // Mensaje visual para niños
+          if (username.length < 2) {
+            nameInput.setCustomValidity('El nombre debe tener al menos 2 letras.');
+            nameInput.reportValidity();
             jugador = "";
+          } else {
+            nameInput.setCustomValidity('');
+            jugador = username;
           }
+      // Mensaje accesible si no hay sesiones
+      if (user.sessions && user.sessions.length === 0) {
+        historyList.innerHTML = '<li style="color:#aaa;font-size:0.95em;">¡Juega una partida para ver tu progreso aquí!</li>';
+      }
         }
         currentUser = null; // Will be created when game starts
       } else {
@@ -1128,8 +1284,8 @@
     }
     
     // Save user session data
-    function saveUserSession(username, score, sessionData) {
-      const user = currentUser || usersDatabase[username];
+    async function saveUserSession(username, score, sessionData) {
+      const user = currentUser || await getUserFromFirebase(username);
       if (!user) {
         console.error('Cannot save session: user not found');
         return;
@@ -1154,19 +1310,23 @@
         user.personalBest = score;
       }
       
-      // Keep only last 50 sessions to avoid localStorage bloat
+      // Keep only last 50 sessions to avoid storage bloat
       if (user.sessions.length > 50) {
         user.sessions = user.sessions.slice(-50);
       }
       
-      saveUsersDatabase();
+      // Save to Firebase
+      await saveUserToFirebase(username, user);
+      
+      // Update local database
+      usersDatabase[username] = user;
       currentUser = user;
     }
     
     // Initialize user system
-    function initializeUserSystem() {
-      loadUsersDatabase();
-      updateUserDropdown();
+    async function initializeUserSystem() {
+      await loadUsersDatabase();
+      await updateUserDropdown();
       
       // Event listeners
       document.getElementById('existing-user').addEventListener('change', handleUserTypeChange);
@@ -1379,7 +1539,7 @@
       }
     }
 
-    function iniciarJuego() {
+    async function iniciarJuego() {
       const passwordInput = document.getElementById('user-password');
       const existingRadio = document.getElementById('existing-user');
       const password = passwordInput.value;
@@ -1412,21 +1572,24 @@
           return;
         }
         
-        if (usersDatabase[jugador.trim()]) {
+        // Check if user exists in Firebase too
+        const existingUser = await getUserFromFirebase(jugador.trim());
+        if (existingUser || usersDatabase[jugador.trim()]) {
           alert('⚠️ This player name already exists! Please switch to "Select existing player" or choose a different name.');
           return;
         }
         
         try {
-          currentUser = createOrGetUser(jugador.trim(), password.trim());
-          saveUsersDatabase();
-          updateUserDropdown();
+          currentUser = await createOrGetUser(jugador, password);
+          await updateUserDropdown(); // Refresh dropdown with new user
         } catch (error) {
-          alert('❌ Error creating user: ' + error.message);
+          console.error('Error creating user:', error);
+          alert('⚠️ Error creating user. Please try again.');
           return;
         }
       }
       
+      // Start the game
       document.getElementById('start-btn').style.display = 'none';
       juegoIniciado = true;
       iniciarCronometro();
@@ -1870,8 +2033,8 @@
     };
     
     // Initialize user system when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-      initializeUserSystem();
+    document.addEventListener('DOMContentLoaded', async function() {
+      await initializeUserSystem();
     });
   </script>
 </body>

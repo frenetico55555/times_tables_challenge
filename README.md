@@ -14,14 +14,20 @@ This is a **web-based multiplication game** created to help kids (ages 6-12) lea
 
 ### ✨ Key Features
 
-- 🎯 **Smart Adaptive Learning** - Automatically focuses on multiplication facts where errors occur
-- 📊 **Real-time Performance Tracking** - Monitor speed, accuracy, and overall score
-- 🏆 **High Score System** - Motivate learning with achievement tracking
-- 🎨 **Beautiful Kid-Friendly Design** - Colorful gradients, animations, and emojis
-- 📱 **Fully Responsive** - Perfect display on desktop, tablet, and mobile
-- 📸 **Screenshot Feature** - Save and share achievements
-- 🌐 **Works Offline** - No internet required after loading
-- ⚡ **Zero Installation** - Just open in a browser and play!
+
+---
+
+## � New in v1.1: Multi-user, Secure Progress & Visual History
+
+- 👤 **User Registration & Login** - Each child can create a personal account with a simple password
+- � **Password Protection** - Only the correct password allows access to a user's progress
+- 📈 **Score History Panel** - See your last 10 scores and dates for every session
+- ✨ **Sparkline Visualization** - Mini-graph shows your score evolution over time (compatible with desktop and mobile)
+- 🏅 **Personal Best Tracking** - Each user sees their own best score and session count
+- 🧑‍🎓 **Kid & Parent Friendly** - Clear messages, accessible buttons, and feedback for all ages
+- 🌍 **Full Accessibility** - All features work on desktop, tablet, and mobile
+
+---
 
 ---
 
@@ -42,13 +48,11 @@ Visit: **[https://frenetico55555.github.io/times_tables_challenge](https://frene
 
 ## 🎮 How to Play
 
-1. **Enter Your Name** - Personalize your experience
-2. **Click Start** - The game will randomly select a multiplication problem
-3. **Type Your Answer** - Enter the result in the highlighted cell
-4. **Press Enter** - Submit your answer
-5. **Get Feedback** - See if you're correct with visual and textual feedback
-6. **Track Progress** - Monitor your statistics in the left panel
-7. **Beat Your High Score** - Try to improve your score with each session!
+1. **Create or Select Your Player** - Register a new player with a simple password, or select an existing one
+2. **Start the Game** - The app will choose multiplication challenges for you
+3. **Answer & Submit** - Type your answer and press Enter (or tap the button on mobile)
+4. **See Your Progress** - Visual feedback, stats, and your score history update instantly
+5. **Track Your Improvement** - View your personal best and sparkline graph in the stats panel
 
 ### 🎯 Scoring System
 
@@ -66,14 +70,15 @@ Score = (Accuracy Percentage / Average Time) × 100
 
 ## 📊 Statistics Tracked
 
-| Metric | Description |
-|--------|-------------|
-| ⏱️ **Total Time** | Cumulative time since starting the session |
-| ⚡ **Last Challenge** | Time taken to answer the most recent question |
-| 📊 **Average** | Average response time for the last 10 challenges |
-| ✅ **Last 10 Accuracy** | Percentage of correct answers in last 10 attempts |
-| 🎯 **Score** | Current performance score |
-| 🏆 **Higher Score** | Best score achieved (appears after 10+ challenges) |
+| Métrica | Descripción |
+|---------|-------------|
+| ⏱️ **Tiempo total** | Tiempo acumulado desde el inicio de la sesión |
+| ⚡ **Último reto** | Tiempo para responder el último desafío |
+| 📊 **Promedio** | Tiempo promedio de respuesta (últimos 10 retos) |
+| ✅ **Últimos 10 aciertos** | Porcentaje de respuestas correctas en los últimos 10 intentos |
+| 🎯 **Score** | Puntuación actual |
+| 🏆 **Mejor Score** | Mejor puntuación lograda (aparece tras 10+ retos) |
+| 📈 **Historial visual** | Lista y gráfico de los últimos 10 scores |
 
 ---
 
