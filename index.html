@@ -431,6 +431,50 @@
     #highscore-floating #score {
       background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%) !important;
     }
+    #highscore-floating #highscore.global-highscore {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 40%, #ffd166 100%) !important;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.6), 0 6px 25px rgba(255,140,0,0.5);
+      position: relative;
+      isolation: isolate;
+    }
+    #highscore-floating #highscore.global-highscore:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 2px;
+      background: linear-gradient(120deg, rgba(255,255,255,0.6), rgba(255,215,0,0.9), rgba(255,255,255,0.6));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+    #highscore-floating #highscore.global-highscore:after {
+      content: "★";
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: radial-gradient(circle at 30% 30%, #fff 0%, #ffd700 60%, #ff8c00 100%);
+      color: #a85b00;
+      font-size: 0.9em;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      animation: starPulse 2.5s ease-in-out infinite;
+    }
+    @keyframes starPulse {
+      0%,100% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+      50% { transform: scale(1.15) rotate(8deg); filter: brightness(1.2); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #highscore-floating #highscore.global-highscore:after { animation: none; }
+    }
     @media (max-width: 900px) {
       #highscore-floating { justify-content: center; }
     }
@@ -898,7 +942,7 @@
       </script>
     </tbody>
   </table>
-  <div id="highscore-floating"><span id="score">🎯 Last 10 trials score</span><span id="session-highscore">🏆 Current session highest score</span><span id="highscore">🏆 All sessions higher score</span></div>
+  <div id="highscore-floating"><span id="score">🎯 Last 10 trials score</span><span id="session-highscore">🏆 Current session highest score</span><span id="highscore" class="global-highscore" aria-label="All sessions highest score (personal best)">🏆 All sessions higher score</span></div>
     </div>
   </div>
   <!-- Firebase Configuration -->
