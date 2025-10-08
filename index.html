@@ -1,324 +1,381 @@
 <!DOCTYPE html>
 <html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive multiplication tables game for kids ages 6-12. Learn multiplication from 1 to 12 with adaptive learning, real-time statistics, and fun animations!">
+  <meta name="keywords" content="multiplication, tables, game, math, education, kids, learning, interactive, adaptive">
+  <meta name="author" content="Rodrigo Figueroa">
+  <meta name="version" content="1.0.1">
+  <meta name="theme-color" content="#667eea">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://frenetico55555.github.io/times_tables_challenge/">
+  <meta property="og:title" content="🎮 Multiplication Tables Game (1 to 12) ⭐">
+  <meta property="og:description" content="Fun and interactive game to help kids master multiplication tables!">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://frenetico55555.github.io/times_tables_challenge/">
+  <meta property="twitter:title" content="🎮 Multiplication Tables Game (1 to 12) ⭐">
+  <meta property="twitter:description" content="Fun and interactive game to help kids master multiplication tables!">
+  
+  <title>🎮 Multiplication Tables Game 1-12 ⭐</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     
-    /*
-      REWRITTEN USER SYSTEM (from scratch)
-      Goals:
-      - Simpler, predictable flow
-      - Immediate persistence when a new user (name + password) is valid
-      - Single source of truth (usersCache) kept in sync with localStorage + Firestore (best-effort)
-      - Clear separation of UI handlers vs data layer
-      - Minimal global surface: expose only required functions/vars used by game logic
-      Public API maintained: saveUserSession(username,...), initializeUserSystem()
-    */
-    const UserManager = (function() {
-      const LS_KEY = 'multiplicationGameUsers';
-      let usersCache = {}; // username -> user object
-      let currentUser = null; // exported later
-      let jugadorAlias = ''; // mirrors global 'jugador'
-
-      // ---------- Data Layer ----------
-      function loadFromLocal() {
-        try {
-          const raw = localStorage.getItem(LS_KEY);
-            if (raw) {
-              usersCache = JSON.parse(raw) || {};
-              console.log('[UserManager] Local users loaded:', Object.keys(usersCache));
-          } else {
-              usersCache = {};
-              console.log('[UserManager] No local users yet');
-          }
-        } catch (e) {
-          console.warn('[UserManager] Failed parsing localStorage', e);
-          usersCache = {};
-        }
-      }
-
-      async function mergeFromFirestore() {
-        if (!(window.firestore && window.db)) {
-          console.log('[UserManager] Firestore not available, skipping cloud sync');
-          return;
-        }
-        try {
-          const usersRef = window.firestore.collection(window.db, 'users');
-          const snap = await window.firestore.getDocs(usersRef);
-          let added = 0;
-          snap.forEach(doc => {
-            const data = doc.data();
-            if (!usersCache[doc.id]) added++;
-            usersCache[doc.id] = data;
-          });
-          persistLocal();
-          console.log(`[UserManager] Firestore sync complete. Total users: ${Object.keys(usersCache).length} (new from cloud: ${added})`);
-        } catch (e) {
-          console.warn('[UserManager] Firestore sync failed', e);
-        }
-      }
-
-      function persistLocal() {
-        try { localStorage.setItem(LS_KEY, JSON.stringify(usersCache)); } catch(e) { console.warn('[UserManager] localStorage save failed', e); }
-      }
-
-      async function persistFirestore(username) {
-        if (!(window.firestore && window.db)) return false;
-        try {
-          const userRef = window.firestore.doc(window.db, 'users', username);
-          await window.firestore.setDoc(userRef, usersCache[username]);
-          return true;
-        } catch(e) {
-          console.warn('[UserManager] Firestore save failed for', username, e);
-          return false;
-        }
-      }
-
-      function baseUser(username, password) {
-        const now = new Date().toISOString();
-        return {
-          name: username,
-          password,  // NOTE: plain text for simplicity
-          createdAt: now,
-          lastPlayed: null,
-          personalBest: null,
-          totalSessions: 0,
-          sessions: []
-        };
-      }
-
-      function validateUsername(name) {
-        if (!name) return 'Name required';
-        if (name.length < 2) return 'Min 2 letters';
-        if (/[^A-Za-z0-9_\- ]/.test(name)) return 'Only letters/numbers/_ - space';
-        return null;
-      }
-
-      function validatePassword(pw) {
-        if (!pw) return 'Password required';
-        if (pw.length < 2) return 'Min 2 chars';
-        return null;
-      }
-
-      async function createUser(username, password) {
-        if (usersCache[username]) throw new Error('User already exists');
-        const user = baseUser(username, password);
-        usersCache[username] = user;
-        persistLocal();
-        persistFirestore(username); // fire & forget
-        currentUser = user;
-        jugadorAlias = username;
-        console.log('[UserManager] Created new user', username);
-        return user;
-      }
-
-      async function verifyUser(username, password) {
-        const user = usersCache[username];
-        if (!user) return false;
-        const ok = user.password === password;
-        if (ok) {
-          currentUser = user;
-          jugadorAlias = username;
-          console.log('[UserManager] Login success', username);
-        }
-        return ok;
-      }
-
-      function recordSession(username, score, sessionData) {
-        const user = usersCache[username];
-        if (!user) { console.warn('[UserManager] Cannot record session, missing user', username); return; }
-        const ses = {
-          date: new Date().toISOString(),
-          score,
-          accuracy: sessionData.accuracy,
-          averageTime: sessionData.averageTime,
-          totalTime: sessionData.totalTime,
-          challenges: sessionData.challenges
-        };
-        user.sessions.push(ses);
-        user.totalSessions++;
-        user.lastPlayed = ses.date;
-        if (user.personalBest == null || score > user.personalBest) user.personalBest = score;
-        if (user.sessions.length > 50) user.sessions = user.sessions.slice(-50);
-        persistLocal();
-        persistFirestore(username);
-      }
-
-      // ---------- UI Layer ----------
-      function populateDropdown() {
-        const dd = document.getElementById('existing-users');
-        if (!dd) return;
-        const users = Object.keys(usersCache).sort();
-        dd.innerHTML = '<option value="">-- Select a player --</option>';
-        if (users.length === 0) {
-          const opt = document.createElement('option');
-          opt.disabled = true; opt.value=''; opt.textContent='(No players yet)';
-          dd.appendChild(opt);
-        } else {
-          users.forEach(u => { const o=document.createElement('option'); o.value=u; o.textContent=u; dd.appendChild(o); });
-        }
-      }
-
-      function updateStatsPanel() {
-        if (!currentUser) { document.getElementById('user-stats').style.display='none'; return; }
-        document.getElementById('user-sessions').textContent = currentUser.totalSessions;
-        document.getElementById('user-best').textContent = currentUser.personalBest != null ? currentUser.personalBest.toFixed(1) : '--';
-        document.getElementById('user-last-played').textContent = currentUser.lastPlayed ? new Date(currentUser.lastPlayed).toLocaleDateString() : 'Never';
-        document.getElementById('user-stats').style.display='block';
-      }
-
-      function resetPasswordField(state='neutral') {
-        const pw = document.getElementById('user-password');
-        pw.value='';
-        pw.style.borderColor = '#667eea';
-        pw.style.backgroundColor = 'white';
-        if (state==='error') { pw.style.borderColor='#ff6b6b'; pw.style.backgroundColor='rgba(255,107,107,0.1)'; }
-        if (state==='ok') { pw.style.borderColor='#55efc4'; pw.style.backgroundColor='rgba(85,239,196,0.1)'; }
-      }
-
-      // Event handlers
-      function onUserTypeChange() {
-        const existingChecked = document.getElementById('existing-user').checked;
-        const dd = document.getElementById('existing-users');
-        const nameInput = document.getElementById('nombre-jugador');
-        const pwSection = document.getElementById('password-section');
-        resetPasswordField();
-        if (existingChecked) {
-          dd.style.display='block';
-          nameInput.style.display='none';
-          nameInput.value='';
-          pwSection.style.display='none';
-          currentUser=null; jugadorAlias=''; updateStatsPanel();
-          populateDropdown();
-        } else {
-          dd.style.display='none';
-          nameInput.style.display='block';
-          pwSection.style.display='none';
-          currentUser=null; jugadorAlias=''; updateStatsPanel();
-        }
-      }
-
-      function onExistingSelect() {
-        const username = document.getElementById('existing-users').value;
-        const pwSection = document.getElementById('password-section');
-        const pw = document.getElementById('user-password');
-        if (username) {
-          pw.placeholder='Enter password...';
-          pwSection.style.display='block';
-          resetPasswordField();
-          currentUser=null; jugadorAlias=''; updateStatsPanel();
-        } else {
-          pwSection.style.display='none';
-          resetPasswordField();
-          currentUser=null; jugadorAlias=''; updateStatsPanel();
-        }
-      }
-
-      function onNewNameInput() {
-        const nameInput = document.getElementById('nombre-jugador');
-        const val = nameInput.value.trim();
-        const pwSection = document.getElementById('password-section');
-        const err = validateUsername(val);
-        if (!val) { pwSection.style.display='none'; nameInput.setCustomValidity(''); jugadorAlias=''; currentUser=null; return; }
-        if (usersCache[val]) {
-          nameInput.setCustomValidity('Name already exists. Choose another or select existing.');
-          nameInput.reportValidity();
-          nameInput.style.borderColor='#ff6b6b';
-          nameInput.style.backgroundColor='rgba(255,107,107,0.1)';
-          pwSection.style.display='none'; jugadorAlias=''; currentUser=null; return;
-        }
-        if (err) {
-          nameInput.setCustomValidity(err); nameInput.reportValidity();
-          nameInput.style.borderColor='#ff6b6b';
-          nameInput.style.backgroundColor='rgba(255,107,107,0.1)';
-          pwSection.style.display='none'; jugadorAlias=''; currentUser=null; return;
-        }
-        nameInput.setCustomValidity('');
-        nameInput.style.borderColor='#667eea';
-        nameInput.style.backgroundColor='white';
-        jugadorAlias = val; currentUser=null;
-        pwSection.style.display='block';
-        document.getElementById('user-password').placeholder='Create password (min 2 chars)';
-      }
-
-      async function onPasswordInput() {
-        const existingChecked = document.getElementById('existing-user').checked;
-        const pw = document.getElementById('user-password');
-        const val = pw.value;
-        if (!val) { resetPasswordField(); return; }
-        if (existingChecked) {
-          const username = document.getElementById('existing-users').value;
-          if (!username) return;
-          if (await verifyUser(username, val)) {
-            resetPasswordField('ok');
-            updateStatsPanel();
-            highScore = currentUser.personalBest; // sync game highscore
-          } else {
-            resetPasswordField('error');
-          }
-        } else {
-          // new user creation path
-          const name = document.getElementById('nombre-jugador').value.trim();
-          if (!name) return;
-          const errPw = validatePassword(val);
-          if (errPw) { resetPasswordField('error'); return; }
-          try {
-            await createUser(name, val);
-            resetPasswordField('ok');
-            updateStatsPanel();
-            highScore = currentUser.personalBest; // will be null
-            populateDropdown(); // now user appears for future sessions
-          } catch(e) {
-            console.warn(e); resetPasswordField('error');
-          }
-        }
-      }
-
-      // ---------- Public wrappers to match previous names ----------
-      function saveUserSessionPublic(username, score, sessionData) {
-        recordSession(username, score, sessionData);
-        updateStatsPanel();
-        highScore = usersCache[username].personalBest; // keep game high score aligned
-      }
-
-      async function initializeUserSystemPublic() {
-        loadFromLocal();
-        populateDropdown();
-        await mergeFromFirestore();
-        populateDropdown();
-        // Auto-select existing tab if users exist
-        if (Object.keys(usersCache).length > 0) {
-          document.getElementById('existing-user').checked = true;
-          document.getElementById('new-user').checked = false;
-        }
-        onUserTypeChange();
-        // Listeners
-        document.getElementById('existing-user').addEventListener('change', onUserTypeChange);
-        document.getElementById('new-user').addEventListener('change', onUserTypeChange);
-        document.getElementById('existing-users').addEventListener('change', onExistingSelect);
-        document.getElementById('nombre-jugador').addEventListener('input', onNewNameInput);
-        document.getElementById('user-password').addEventListener('input', onPasswordInput);
-        console.log('[UserManager] Initialization complete');
-      }
-
-      // Expose minimal API
-      return {
-        get currentUser() { return currentUser; },
-        get users() { return usersCache; },
-        saveUserSessionPublic,
-        initializeUserSystemPublic,
-        get jugador() { return jugadorAlias; },
-        set jugador(v) { jugadorAlias = v; }
-      };
-    })();
-
-    // Maintain the previously expected global function names for compatibility
-    function saveUserSession(username, score, sessionData) { UserManager.saveUserSessionPublic(username, score, sessionData); }
-    async function initializeUserSystem() { await UserManager.initializeUserSystemPublic(); }
-    let currentUser = null; // legacy global for any external references (kept but not primary)
-    Object.defineProperty(window, 'currentUser', { get() { return UserManager.currentUser; } });
-    let usersDatabase = {}; // kept for legacy logs; points to internal cache
-    Object.defineProperty(window, 'usersDatabase', { get() { return UserManager.users; } });
     
-    // ============= END NEW USER REGISTRATION SYSTEM =============
-    // (Original system removed and replaced above)
+    table { 
+      border-collapse: separate;
+      border-spacing: 2px;
+      margin: 0;
+      font-size: clamp(0.7em, 1.2vw, 1em);
+      width: 100%;
+      max-width: min(70vw, 900px);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: clamp(8px, 1vw, 12px);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+      animation: tableFloat 3s ease-in-out infinite;
+    }
+    
+    @keyframes tableFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    
+    th, td { 
+      border: none;
+      padding: clamp(0.2em, 0.5vw, 0.35em);
+      text-align: center; 
+      width: clamp(30px, 4vw, 48px);
+      height: clamp(20px, 3vw, 32px);
+      box-sizing: border-box;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      font-size: clamp(0.75em, 1vw, 1em);
+    }
+    
+    th { 
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      font-weight: 700;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 8px rgba(240, 147, 251, 0.3);
+    }
+    
+    td {
+      background: white;
+      color: #333;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    td:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .highlight-row th, .highlight-row td { 
+      background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important; 
+      animation: pulse 0.6s ease-in-out;
+    }
+    .highlight-col { 
+      background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important; 
+      animation: pulse 0.6s ease-in-out;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    
+    .highlight-row.red th, .highlight-row.red td,
+    .highlight-col.red { 
+      background: linear-gradient(135deg, #ff7675 0%, #d63031 100%) !important;
+      animation: shake 0.5s ease-in-out;
+    }
+    .highlight-row.green th, .highlight-row.green td,
+    .highlight-col.green { 
+      background: linear-gradient(135deg, #55efc4 0%, #00b894 100%) !important;
+      animation: bounce 0.6s ease-in-out;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    input[type="number"].cell-input { 
+      width: 90%;
+      max-width: 44px;
+      font-size: clamp(0.9em, 1vw, 1.1em); 
+      text-align: center; 
+      padding: 2px;
+      margin: 0;
+      border: 3px solid #667eea;
+      border-radius: 8px;
+      font-weight: 700;
+      color: #667eea;
+      background: #fff;
+      transition: all 0.3s ease;
+      font-family: 'Quicksand', sans-serif;
+    }
+    
+    input[type="number"].cell-input:focus {
+      outline: none;
+      border-color: #f093fb;
+      box-shadow: 0 0 15px rgba(240, 147, 251, 0.5);
+      transform: scale(1.1);
+    }
+    
+    
+    #juego-controls { 
+      margin: 0;
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      padding: clamp(15px, 2vh, 25px);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      width: 100%;
+    }
+    
+    #juego-controls > div:first-child {
+      margin-bottom: 1.5em;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    #juego-controls button,
+    #juego-controls a {
+      margin: 5px 0 !important;
+      width: 100%;
+    }
+    
+    #juego-controls a button {
+      width: 100%;
+    }
+    
+    #stats { 
+      margin: 0;
+      font-size: 1em;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 600;
+    }
+    
+    #stats span { 
+      background: white;
+      padding: clamp(8px, 1.2vh, 12px) clamp(12px, 1.5vw, 16px);
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      color: #555;
+      text-align: left;
+      width: 100%;
+      font-size: clamp(0.85em, 1vw, 1em);
+    }
+    
+    #stats span:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    button {
+      font-size: clamp(0.85em, 1.1vw, 1em); 
+      padding: clamp(10px, 1.2vh, 12px) clamp(18px, 2vw, 24px); 
+      margin: 0;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: 700;
+      font-family: 'Quicksand', sans-serif;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    #start-btn { 
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      font-size: clamp(1em, 1.3vw, 1.2em);
+      padding: clamp(12px, 1.5vh, 14px) clamp(24px, 2.5vw, 32px);
+      animation: pulseButton 2s infinite;
+    }
+    
+    @keyframes pulseButton {
+      0%, 100% { transform: scale(1); box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4); }
+      50% { transform: scale(1.05); box-shadow: 0 6px 20px rgba(56, 239, 125, 0.6); }
+    }
+    
+    #start-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 8px 25px rgba(56, 239, 125, 0.5);
+    }
+    
+    #reset-btn {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      color: white;
+    }
+    
+    #reset-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(250, 112, 154, 0.4);
+    }
+    
+    #screenshot-btn {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+    }
+    
+    #screenshot-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+    }
+    
+    a button {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+    
+    a button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(240, 147, 251, 0.4);
+    }
+    
+    .oculto { visibility: hidden; }
+    
+    html, body {
+      width: 100vw;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      font-family: 'Quicksand', sans-serif;
+    }
+    
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      padding: 1vh 1vw;
+      overflow-x: hidden;
+    }
+    
+    #main-container {
+      display: flex;
+      flex-direction: row;
+      gap: 2vw;
+      width: 98vw;
+      max-width: 100%;
+      align-items: flex-start;
+      justify-content: center;
+      margin-top: 1vh;
+    }
+    
+    #left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1vh;
+      width: clamp(280px, 22vw, 360px);
+      flex-shrink: 0;
+    }
+    
+    #right-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+    }
+    
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    h1 {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(1.5em, 4vw, 2.5em);
+      color: white;
+      text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+      margin: 10px 0;
+      text-align: center;
+      animation: titleBounce 2s ease-in-out infinite;
+    }
+    
+    @keyframes titleBounce {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(-2deg); }
+    }
+    
+    label {
+      font-weight: 700;
+      color: #2d3436;
+      font-size: 1.1em;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+    }
+    
+    input[type="text"] {
+      font-size: clamp(0.95em, 1.1vw, 1.1em);
+      padding: clamp(8px, 1vh, 10px) clamp(12px, 1.5vw, 15px);
+      border: 3px solid #667eea;
+      border-radius: 15px;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 600;
+      color: #2d3436;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #f093fb;
+      box-shadow: 0 0 15px rgba(240, 147, 251, 0.5);
+      transform: scale(1.02);
+    }
+    
+    input[type="password"] {
+      font-size: clamp(0.95em, 1.1vw, 1.1em);
+      padding: clamp(8px, 1vh, 10px) clamp(12px, 1.5vw, 15px);
+      border: 3px solid #667eea;
+      border-radius: 15px;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 600;
+      color: #2d3436;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #f093fb;
+      box-shadow: 0 0 15px rgba(240, 147, 251, 0.5);
+      transform: scale(1.02);
+    }
+    
+    #feedback {
       font-size: clamp(1em, 1.2vw, 1.2em);
       font-weight: 700;
       margin-top: clamp(10px, 1.5vh, 15px);
@@ -523,14 +580,6 @@
         flex: 1 1 calc(50% - 5px);
         min-width: 140px;
       }
-      
-      #score-container {
-        margin-top: 20px;
-      }
-      
-      #score-container span {
-        font-size: clamp(0.9em, 1.3vw, 1em);
-      }
     }
     
     /* Mobile Challenge Display */
@@ -662,11 +711,6 @@
         display: none;
       }
       
-      /* Hide score container on mobile when game is active */
-      #score-container {
-        display: none;
-      }
-      
       /* Show mobile challenge display */
       #mobile-challenge {
         display: flex;
@@ -746,16 +790,25 @@
   <!-- Mobile compact stats bar -->
   <div id="mobile-stats-bar">
     <span id="mobile-avg">📊 Avg: -- s</span>
-    <span id="mobile-score">🎯 Current Session Score: --</span>
+    <span id="mobile-score">🎯 Score: --</span>
   </div>
   
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        alert(
+          '🎮 Hello! We created this math game for our kids to help them learn the multiplication tables. They loved it! They started trying to beat their "higher score" in exchange for a prize, and in just one week they knew all the tables, haha. They liked it so much that they shared it with their friends, and several parents asked us for the game, so we uploaded it here. Before publishing it on a pro site, we are asking for suggestions to improve it. If you want to help make this tool better for kids, we would appreciate your feedback by clicking the "Send Suggestions" button below. Thank you very much! ⭐'
+        );
+      }, 100);
+    });
+  </script>
   <h1>🎮 Multiplication Tables Game (1 to 12) ⭐</h1>
   
   <div id="main-container">
     <!-- Left Panel: Controls and Stats -->
     <div id="left-panel">
       <div id="juego-controls">
-        <div style="margin-bottom: 0.5em;">
+        <div style="margin-bottom: 1.5em;">
           <label for="user-selector" style="font-weight:bold;">👤 Player:</label>
           <div id="user-selector" style="margin-top: 0.5em;">
             <div style="display: flex; gap: 0.5em; margin-bottom: 0.5em;">
@@ -772,19 +825,20 @@
             <input type="text" id="nombre-jugador" style="font-size:1.1em; width: 100%; margin-bottom: 0.5em;" placeholder="Enter new player name..." autocomplete="off">
             
             <div id="password-section" style="display: none;">
-              <label for="user-password" style="font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 0.3em; color: #2d3748;">🔐 Simple Password:</label>
+              <label for="user-password" style="font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 0.3em;">🔐 Simple Password:</label>
               <input type="password" id="user-password" style="font-size:1.1em; width: 100%; margin-bottom: 0.3em;" placeholder="Enter your simple password..." autocomplete="off">
-              <div style="font-size: 0.8em; color: #4a5568; margin-bottom: 0.5em;">
+              <div style="font-size: 0.8em; color: rgba(255,255,255,0.8); margin-bottom: 0.5em;">
                 💡 <em>Use something simple like your age, favorite number, or pet's name</em>
               </div>
             </div>
             
-            <div id="user-stats" style="margin-top: 0.5em; padding: 0.8em; background: rgba(255,255,255,0.25); border-radius: 8px; font-size: 0.95em; display: none; border: 1px solid rgba(255,255,255,0.3);">
-              <div style="color: #1a202c; margin-bottom: 0.3em;">🎮 <strong>Sessions played:</strong> <span id="user-sessions">0</span></div>
-              <div style="color: #1a202c; margin-bottom: 0.3em;">🏆 <strong>All-time best score:</strong> <span id="user-best">--</span></div>
-              <div style="color: #1a202c;">📅 <strong>Last session:</strong> <span id="user-last-played">Never</span></div>
+            <div id="user-stats" style="margin-top: 0.5em; padding: 0.5em; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.9em; display: none;">
+              <div>🎮 <strong>Partidas jugadas:</strong> <span id="user-sessions">0</span></div>
+              <div>🏆 <strong>Mejor score:</strong> <span id="user-best">--</span></div>
+              <div>📅 <strong>Última vez:</strong> <span id="user-last-played">Nunca</span></div>
             </div>
-            <div id="user-history-panel" style="margin-top: 0.5em; padding: 0.8em; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 0.9em; display: none; max-height: 180px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.25);">
+            <div id="user-history-panel" style="margin-top: 0.5em; padding: 0.5em; background: rgba(255,255,255,0.08); border-radius: 8px; font-size: 0.9em; display: none; max-height: 180px; overflow-y: auto;">
+              <div style="font-weight: bold; margin-bottom: 0.3em;">📈 Evolución de tu Score</div>
               <ul id="user-history-list" style="list-style: none; padding-left: 0; margin: 0;">
                 <!-- Score history will be populated here -->
               </ul>
@@ -792,16 +846,21 @@
           </div>
         </div>
         <button id="start-btn" onclick="iniciarJuego()">🚀 Start Game!</button>
-        <button id="stop-btn" onclick="detenerSesion()" style="display: none; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">⏹️ Stop Game Session</button>
+  <button id="reset-btn" onclick="reiniciarJuego()" aria-label="Reiniciar cronómetro" title="Reinicia el tiempo del juego">🔄 Reiniciar Tiempo</button>
+  <button id="screenshot-btn" aria-label="Tomar captura" title="Guarda una imagen del progreso">📸 Captura de Pantalla</button>
         <a href="https://forms.gle/AvHgLfGM7LdmSfbt6" target="_blank" rel="noopener" style="text-decoration:none;">
           <button type="button">💡 Send Suggestions</button>
         </a>
         <span id="feedback"></span>
-      </div>      <div id="stats">
-  <span id="cronometro">⏱️ Current session time: 00:00</span>
-  <span id="ultimo-tiempo" style="display: none;">⚡ Last trial: -- s</span>
-  <span id="promedio-tiempo">📊 Avg time (last 10): -- s</span>
-  <span id="porcentaje-correctas">✅ Avg accuracy (last 10): -- %</span>
+      </div>
+      
+      <div id="stats">
+  <span id="cronometro">⏱️ Tiempo total: 00:00</span>
+  <span id="ultimo-tiempo">⚡ Último reto: -- s</span>
+  <span id="promedio-tiempo">📊 Promedio: -- s</span>
+  <span id="porcentaje-correctas">✅ Últimos 10: -- % correctas</span>
+  <span id="score">🎯 Score: --</span>
+  <span id="highscore">🏆 Mejor Score: --</span>
       </div>
     </div>
     
@@ -840,12 +899,6 @@
       </script>
     </tbody>
   </table>
-  
-  <!-- Score displays below matrix -->
-  <div id="score-container">
-    <span id="score">🎯 Current Session Score: --</span>
-    <span id="highscore">🏆 Session best: --</span>
-  </div>
     </div>
   </div>
   <!-- Firebase Configuration -->
@@ -888,28 +941,21 @@
         const stored = localStorage.getItem('multiplicationGameUsers');
         if (stored) {
           usersDatabase = JSON.parse(stored);
-          console.log('Loaded', Object.keys(usersDatabase).length, 'users from localStorage');
-        } else {
-          console.log('No users found in localStorage');
         }
         
-        // Then try to sync with Firebase to get all users
-        if (window.firestore && window.db) {
-          const usersRef = window.firestore.collection(window.db, 'users');
-          const querySnapshot = await window.firestore.getDocs(usersRef);
-          
-          querySnapshot.forEach((doc) => {
-            const userData = doc.data();
-            usersDatabase[doc.id] = userData;
-          });
-          
-          // Save merged data back to localStorage
-          localStorage.setItem('multiplicationGameUsers', JSON.stringify(usersDatabase));
-          
-          console.log('Loaded', Object.keys(usersDatabase).length, 'users from Firebase');
-        } else {
-          console.log('Firebase not available - using localStorage only');
-        }
+        // Then sync with Firebase to get all users
+        const usersRef = window.firestore.collection(window.db, 'users');
+        const querySnapshot = await window.firestore.getDocs(usersRef);
+        
+        querySnapshot.forEach((doc) => {
+          const userData = doc.data();
+          usersDatabase[doc.id] = userData;
+        });
+        
+        // Save merged data back to localStorage
+        localStorage.setItem('multiplicationGameUsers', JSON.stringify(usersDatabase));
+        
+        console.log('Loaded', Object.keys(usersDatabase).length, 'users from Firebase');
       } catch (error) {
         console.error('Error loading users from Firebase:', error);
         // Fallback to localStorage if Firebase fails
@@ -917,7 +963,6 @@
           const stored = localStorage.getItem('multiplicationGameUsers');
           if (stored) {
             usersDatabase = JSON.parse(stored);
-            console.log('Using', Object.keys(usersDatabase).length, 'users from localStorage (Firebase fallback)');
           }
         } catch (localError) {
           console.error('Error loading from localStorage:', localError);
@@ -1020,21 +1065,38 @@
       const dropdown = document.getElementById('existing-users');
       dropdown.innerHTML = '<option value="">-- Select a player --</option>';
       
-      // Get users from usersDatabase (which includes both Firebase and localStorage data)
-      const users = Object.keys(usersDatabase).sort();
-      
-      if (users.length === 0) {
-        console.log('No users found in database');
-      } else {
-        console.log('Found', users.length, 'users:', users);
+      // Try to get users from Firebase first
+      try {
+        const usersRef = window.firestore.collection(window.db, 'users');
+        // For now, we'll use the local database and load users as needed
+        // In a full implementation, you might want to get all user names
+        
+        const users = Object.keys(usersDatabase).sort();
+        users.forEach(username => {
+          const user = usersDatabase[username];
+          const option = document.createElement('option');
+          option.value = username;
+          option.textContent = username;
+          if (user.personalBest) {
+            option.textContent += ` (Best: ${user.personalBest.toFixed(1)})`;
+          }
+          dropdown.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error updating user dropdown:', error);
+        // Fallback to localStorage data
+        const users = Object.keys(usersDatabase).sort();
+        users.forEach(username => {
+          const user = usersDatabase[username];
+          const option = document.createElement('option');
+          option.value = username;
+          option.textContent = username;
+          if (user.personalBest) {
+            option.textContent += ` (Best: ${user.personalBest.toFixed(1)})`;
+          }
+          dropdown.appendChild(option);
+        });
       }
-      
-      users.forEach(username => {
-        const option = document.createElement('option');
-        option.value = username;
-        option.textContent = username;
-        dropdown.appendChild(option);
-      });
     }
     
     // Show user statistics
@@ -1048,16 +1110,21 @@
         new Date(user.lastPlayed).toLocaleDateString() : 'Never';
       document.getElementById('user-stats').style.display = 'block';
 
-      // Show only the sparkline, without the scores list
+      // Poblar historial de scores
       const historyPanel = document.getElementById('user-history-panel');
       const historyList = document.getElementById('user-history-list');
-      
-      // Hide the scores list
-      historyList.style.display = 'none';
-      
       if (user.sessions && user.sessions.length > 0) {
+        historyList.innerHTML = '';
+        // Mostrar los últimos 10 scores (más recientes primero)
+        user.sessions.slice(-10).reverse().forEach(session => {
+          const li = document.createElement('li');
+          const dateStr = new Date(session.date).toLocaleDateString();
+          li.textContent = `${dateStr}: ${session.score.toFixed(1)}`;
+          historyList.appendChild(li);
+        });
         historyPanel.style.display = 'block';
       } else {
+        historyList.innerHTML = '<li>No history yet</li>';
         historyPanel.style.display = 'block';
       }
     }
@@ -1074,9 +1141,8 @@
       const dropdown = document.getElementById('existing-users');
       const nameInput = document.getElementById('nombre-jugador');
       const passwordSection = document.getElementById('password-section');
-
+      
       if (existingRadio.checked) {
-        console.log('[UserTypeChange] Existing selected. Users in DB:', Object.keys(usersDatabase));
         dropdown.style.display = 'block';
         nameInput.style.display = 'none';
         passwordSection.style.display = 'none';
@@ -1084,8 +1150,6 @@
         clearPasswordField();
         hideUserStats();
         currentUser = null;
-        // Force refresh dropdown in case users loaded after initial render
-        updateUserDropdown();
       } else {
         dropdown.style.display = 'none';
         nameInput.style.display = 'block';
@@ -1156,7 +1220,7 @@
             usersDatabase[username] = currentUser;
             showUserStats(username);
             jugador = username;
-            // Show session history and all-time best score on login
+            // Mostrar historial y mejor score al iniciar sesión
             document.getElementById('user-history-panel').style.display = 'block';
             document.getElementById('user-stats').style.display = 'block';
           } else {
@@ -1196,10 +1260,10 @@
           // Show warning that user exists
           nameInput.style.borderColor = '#ff6b6b';
           nameInput.style.backgroundColor = 'rgba(255, 107, 107, 0.1)';
-          nameInput.title = 'This player already exists. Choose "Select existing player" to continue.';
+          nameInput.title = 'Este jugador ya existe. Elige "Seleccionar jugador existente" para continuar.';
           passwordSection.style.display = 'none';
-          // Visual message for children
-          nameInput.setCustomValidity('This name is already registered. Use another one or select the existing player.');
+          // Mensaje visual para niños
+          nameInput.setCustomValidity('Este nombre ya está registrado. Usa otro o selecciona el jugador existente.');
           nameInput.reportValidity();
           jugador = "";
           currentUser = null;
@@ -1210,18 +1274,22 @@
           nameInput.setCustomValidity('');
           passwordSection.style.display = 'block';
           const passwordInput = document.getElementById('user-password');
-          passwordInput.placeholder = 'Create a simple password (minimum 2 characters)...';
+          passwordInput.placeholder = 'Crea una contraseña sencilla (mínimo 2 caracteres)...';
           clearPasswordField();
 
-          // Visual message for children
+          // Mensaje visual para niños
           if (username.length < 2) {
-            nameInput.setCustomValidity('Name must be at least 2 letters.');
+            nameInput.setCustomValidity('El nombre debe tener al menos 2 letras.');
             nameInput.reportValidity();
             jugador = "";
           } else {
             nameInput.setCustomValidity('');
             jugador = username;
           }
+      // Mensaje accesible si no hay sesiones
+      if (user.sessions && user.sessions.length === 0) {
+        historyList.innerHTML = '<li style="color:#aaa;font-size:0.95em;">¡Juega una partida para ver tu progreso aquí!</li>';
+      }
         }
         currentUser = null; // Will be created when game starts
       } else {
@@ -1275,31 +1343,28 @@
     async function initializeUserSystem() {
       await loadUsersDatabase();
       await updateUserDropdown();
-      console.log('[Init] Users after load:', Object.keys(usersDatabase));
-      // Auto-switch to existing if there are already users stored (optional UX improvement)
-      if (Object.keys(usersDatabase).length > 0) {
-        document.getElementById('existing-user').checked = true;
-        document.getElementById('new-user').checked = false;
-      }
-      handleUserTypeChange();
-      // Event listeners (ensure added after potential auto-switch)
+      
+      // Event listeners
       document.getElementById('existing-user').addEventListener('change', handleUserTypeChange);
       document.getElementById('new-user').addEventListener('change', handleUserTypeChange);
       document.getElementById('existing-users').addEventListener('change', handleExistingUserSelection);
       document.getElementById('nombre-jugador').addEventListener('input', handleNewUserInput);
       document.getElementById('user-password').addEventListener('input', handlePasswordInput);
+      
+      // Initialize state
+      handleUserTypeChange();
     }
     
     // ============= END USER REGISTRATION SYSTEM =============
     
     let filaActual = null, colActual = null, esperando = false;
-    let timeoutTrial = null;  // Timeout for next trial
+    let timeoutReto = null;
     let tiempoInicio = null;
-    let trialTimes = [];  // Array of response times for last 10 trials
-    let trialResults = [];  // Array of correct/incorrect for last 10 trials
+    let tiempos = [];
+    let resultados = [];
     let juegoIniciado = false;
 
-    // Error matrix: erroresPorCelda[i][j] = error count for cell (i+1, j+1)
+    // Matriz de errores: erroresPorCelda[i][j] = cantidad de errores en celda (i+1, j+1)
     let erroresPorCelda = Array.from({length:12}, () => Array(12).fill(0));
     let highScore = null;
     let jugador = "";
@@ -1324,14 +1389,14 @@
 
     function actualizarCronometro() {
       if (!tiempoInicioCronometro) {
-        document.getElementById('cronometro').textContent = "⏱️ Current session time: 00:00";
+        document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
         return;
       }
       let ahora = Date.now();
       let diff = Math.floor((ahora - tiempoInicioCronometro) / 1000);
       let min = Math.floor(diff / 60);
       let seg = diff % 60;
-      document.getElementById('cronometro').textContent = `⏱️ Current session time: ${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
+      document.getElementById('cronometro').textContent = `⏱️ Total time: ${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
     }
 
     function limpiarMatriz() {
@@ -1348,7 +1413,7 @@
     }
 
     function ocultarCruz() {
-      // Remove any row/column highlight
+      // Quita cualquier highlight de fila/columna
       document.querySelectorAll('#matriz tr').forEach(tr => {
         tr.classList.remove('highlight-row', 'red', 'green');
       });
@@ -1386,48 +1451,48 @@
     }
 
     function actualizarStats(ultimoTiempo = null) {
-      // Only last 10 trials
-      const ultimosResultados = trialResults.slice(-10);
-      const ultimosTiempos = trialTimes.slice(-10);
+      // Solo últimos 10 intentos
+      const ultimosResultados = resultados.slice(-10);
+      const ultimosTiempos = tiempos.slice(-10);
 
-      // Average time for last 10 trials
+      // Promedio de tiempos últimos 10
       let prom = null;
       if (ultimosTiempos.length > 0) {
         const suma = ultimosTiempos.reduce((a, b) => a + b, 0);
         prom = suma / ultimosTiempos.length;
-        document.getElementById('promedio-tiempo').textContent = `📊 Avg time (last 10): ${prom.toFixed(2)} s`;
+        document.getElementById('promedio-tiempo').textContent = `📊 Average: ${prom.toFixed(2)} s`;
       } else {
-        document.getElementById('promedio-tiempo').textContent = `📊 Avg time (last 10): -- s`;
+        document.getElementById('promedio-tiempo').textContent = `📊 Average: -- s`;
       }
-      // Last trial time (hidden)
+      // Último reto
       if (ultimoTiempo !== null) {
-        document.getElementById('ultimo-tiempo').textContent = `⚡ Last trial: ${ultimoTiempo.toFixed(2)} s`;
+        document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: ${ultimoTiempo.toFixed(2)} s`;
       } else if (ultimosTiempos.length > 0) {
-        document.getElementById('ultimo-tiempo').textContent = `⚡ Last trial: ${ultimosTiempos[ultimosTiempos.length-1].toFixed(2)} s`;
+        document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: ${ultimosTiempos[ultimosTiempos.length-1].toFixed(2)} s`;
       } else {
-        document.getElementById('ultimo-tiempo').textContent = `⚡ Last trial: -- s`;
+        document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: -- s`;
       }
-      // Accuracy for last 10 trials
+      // % correctas últimos 10
       let porcentaje = null;
       if (ultimosResultados.length > 0) {
         const correctas = ultimosResultados.filter(x => x).length;
         porcentaje = correctas / ultimosResultados.length;
-        document.getElementById('porcentaje-correctas').textContent = `✅ Avg accuracy (last 10): ${(porcentaje*100).toFixed(0)}%`;
+        document.getElementById('porcentaje-correctas').textContent = `✅ Last 10: ${(porcentaje*100).toFixed(0)}% correct`;
       } else {
-        document.getElementById('porcentaje-correctas').textContent = `✅ Avg accuracy (last 10): --%`;
+        document.getElementById('porcentaje-correctas').textContent = `✅ Last 10: -- % correct`;
       }
-      // Score calculation
-      let scoreText = "🎯 Current Session Score: --";
+      // Score
+      let scoreText = "🎯 Score: --";
       let score = null;
       if (porcentaje !== null && prom !== null && prom > 0) {
         score = (porcentaje / prom) * 100;
-        scoreText = `🎯 Current Session Score: ${score.toFixed(1)}`;
+        scoreText = `🎯 Score: ${score.toFixed(1)}`;
       }
       document.getElementById('score').textContent = scoreText;
 
-      // Current Session Higher Score - only if at least 10 trials completed
+      // Higher Score solo si hay al menos 10 retos
       const highscoreElem = document.getElementById('highscore');
-      if (trialResults.length >= 10 && trialTimes.length >= 10 && score !== null) {
+      if (resultados.length >= 10 && tiempos.length >= 10 && score !== null) {
         let highscorePrevio = highScore;
         if (highScore === null || score > highScore) {
           highScore = score;
@@ -1438,7 +1503,7 @@
               accuracy: porcentaje,
               averageTime: prom,
               totalTime: (Date.now() - tiempoInicioCronometro) / 1000,
-              challenges: trialResults.length
+              challenges: resultados.length
             };
             saveUserSession(jugador, score, sessionData);
             
@@ -1461,14 +1526,14 @@
         if (currentUser && currentUser.personalBest && currentUser.personalBest !== highScore) {
           highscoreElem.textContent = `🏆 Session: ${highScore.toFixed(1)} | Personal: ${currentUser.personalBest.toFixed(1)}`;
         } else {
-          highscoreElem.textContent = `🏆 All Sessions Higher Score: ${highScore.toFixed(1)}`;
+          highscoreElem.textContent = `🏆 Higher Score: ${highScore.toFixed(1)}`;
         }
       } else {
         highScore = null;
         if (currentUser && currentUser.personalBest) {
           highscoreElem.textContent = `🏆 Personal Best: ${currentUser.personalBest.toFixed(1)}`;
         } else {
-          highscoreElem.textContent = "🏆 All Sessions Higher Score: --";
+          highscoreElem.textContent = "🏆 Higher Score: --";
         }
         highscoreElem.classList.remove('highscore-flash');
       }
@@ -1483,9 +1548,9 @@
           mobileAvg.textContent = `📊 Avg: --`;
         }
         if (score !== null) {
-          mobileScore.textContent = `🎯 Current Session Score: ${score.toFixed(1)}`;
+          mobileScore.textContent = `🎯 Score: ${score.toFixed(1)}`;
         } else {
-          mobileScore.textContent = `🎯 Current Session Score: --`;
+          mobileScore.textContent = `🎯 Score: --`;
         }
       }
     }
@@ -1542,7 +1607,6 @@
       
       // Start the game
       document.getElementById('start-btn').style.display = 'none';
-      document.getElementById('stop-btn').style.display = 'inline-block';
       juegoIniciado = true;
       iniciarCronometro();
       
@@ -1563,68 +1627,11 @@
         }
       }
       
-      newTrial();
-    }
-
-    async function detenerSesion() {
-      if (!juegoIniciado) return;
-      
-      // Stop the game
-      juegoIniciado = false;
-      detenerCronometro();
-      
-      // Calculate final stats from last 10 trials
-      const ultimosResultados = trialResults.slice(-10);
-      const ultimosTiempos = trialTimes.slice(-10);
-      
-      let porcentaje = null;
-      let prom = null;
-      
-      if (ultimosResultados.length > 0) {
-        const correctas = ultimosResultados.filter(x => x).length;
-        porcentaje = correctas / ultimosResultados.length;
-      }
-      
-      if (ultimosTiempos.length > 0) {
-        const suma = ultimosTiempos.reduce((a, b) => a + b, 0);
-        prom = suma / ultimosTiempos.length;
-      }
-      
-      // Calculate final score
-      let finalScore = null;
-      if (porcentaje !== null && prom !== null && prom > 0 && trialResults.length >= 10) {
-        finalScore = (porcentaje / prom) * 100;
-        
-        // Save session data
-        if (currentUser && jugador) {
-          const sessionData = {
-            accuracy: porcentaje,
-            averageTime: prom,
-            totalTime: (Date.now() - tiempoInicioCronometro) / 1000,
-            challenges: trialResults.length
-          };
-          await saveUserSession(jugador, finalScore, sessionData);
-          
-          // Update display
-          showUserStats(jugador);
-        }
-        
-        alert(`🎮 Session ended!\n\n🎯 Final score: ${finalScore.toFixed(1)}\n⚡ Average: ${prom.toFixed(2)}s\n✅ Accuracy: ${(porcentaje*100).toFixed(0)}%\n🔢 Trials completed: ${trialResults.length}`);
-      } else {
-        alert(`🎮 Session ended!\n\nComplete at least 10 trials to get a score.`);
-      }
-      
-      // Reset UI
-      document.getElementById('start-btn').style.display = 'inline-block';
-      document.getElementById('stop-btn').style.display = 'none';
-      ocultarCruz();
-      
-      // Clear mobile mode if active
-      document.body.classList.remove('mobile-game-active');
+      nuevoReto();
     }
 
     function elegirCeldaPorErrores() {
-      // Calculate errors by row and column
+      // Calcula errores por fila y por columna
       let erroresFila = Array(12).fill(0);
       let erroresCol = Array(12).fill(0);
       for (let i = 0; i < 12; i++) {
@@ -1633,16 +1640,16 @@
           erroresCol[j] += erroresPorCelda[i][j];
         }
       }
-      // Build array of multiplicative weights (erroresFila[i]+1)*(erroresCol[j]+1)
+      // Construye un array de pesos multiplicativos (erroresFila[i]+1)*(erroresCol[j]+1)
       let pesos = [];
       for (let i = 0; i < 12; i++) {
         for (let j = 0; j < 12; j++) {
           pesos.push((erroresFila[i] + 1) * (erroresCol[j] + 1));
         }
       }
-      // Total sum of weights
+      // Suma total de pesos
       let total = pesos.reduce((a, b) => a + b, 0);
-      // Choose random number between 0 and total
+      // Elige un número aleatorio entre 0 y total
       let r = Math.random() * total;
       let acumulado = 0;
       for (let idx = 0; idx < pesos.length; idx++) {
@@ -1653,18 +1660,18 @@
           return [i + 1, j + 1];
         }
       }
-      // Fallback (shouldn't occur)
+      // Fallback (no debería ocurrir)
       return [Math.floor(Math.random() * 12) + 1, Math.floor(Math.random() * 12) + 1];
     }
 
-    // Variables for special repetition sequence
+    // Variables para la secuencia de repetición especial
     let repeticionActiva = false;
     let secuenciaRepeticion = [];
     let indiceSecuencia = 0;
     let celdaProblematica = null;
 
     function generarSecuenciaRepeticion(fila, col) {
-      // Generate 10 random cells from rows/cols <= 4, distinct from each other and from problematic cell
+      // Genera 10 celdas aleatorias de filas/columnas <= 4, distintas entre sí y distintas de la celda problemática
       let posibles = [];
       for (let i = 1; i <= 4; i++) {
         for (let j = 1; j <= 4; j++) {
@@ -1673,9 +1680,9 @@
           }
         }
       }
-      // Shuffle and take 10 distinct
+      // Mezcla y toma 10 distintas
       for (let i = posibles.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i +  1));
+        const j = Math.floor(Math.random() * (i + 1));
         [posibles[i], posibles[j]] = [posibles[j], posibles[i]];
       }
       let intercaladas = posibles.slice(0, 10);
@@ -1815,11 +1822,11 @@
       
       let tiempoRespuesta = tiempoInicio ? (Date.now() - tiempoInicio) / 1000 : null;
       if (tiempoRespuesta !== null) {
-        trialTimes.push(tiempoRespuesta);
-        if (trialTimes.length > 10) trialTimes.shift();
+        tiempos.push(tiempoRespuesta);
+        if (tiempos.length > 10) tiempos.shift();
       }
 
-      // --- New repetition logic ---
+      // --- Nueva lógica de repetición ---
       let activarSecuencia = false;
       if (valor !== correcto || (tiempoRespuesta !== null && tiempoRespuesta > 6)) {
         activarSecuencia = true;
@@ -1834,11 +1841,11 @@
         document.getElementById('feedback').textContent = '🎉 Correct! Well done!';
         document.getElementById('mobile-feedback').textContent = '🎉 Correct! Well done!';
         resaltaCruz('green');
-        trialResults.push(true);
-        if (trialResults.length > 10) trialResults.shift();
+        resultados.push(true);
+        if (resultados.length > 10) resultados.shift();
         actualizarStats(tiempoRespuesta);
         esperando = false;
-        timeoutTrial = setTimeout(newTrial, 1000);
+        timeoutReto = setTimeout(nuevoReto, 1000);
       } else {
         if (celda) {
           celda.innerHTML = valor || '';
@@ -1848,40 +1855,40 @@
         document.getElementById('feedback').textContent = '';
         document.getElementById('mobile-feedback').textContent = `❌ Incorrect, it was ${correcto}`;
         resaltaCruz('red');
-        trialResults.push(false);
-        if (trialResults.length > 10) trialResults.shift();
+        resultados.push(false);
+        if (resultados.length > 10) resultados.shift();
         erroresPorCelda[filaActual-1][colActual-1]++;
         actualizarStats(tiempoRespuesta);
         esperando = false;
         mostrarModalIncorrecto(`Incorrect, it was ${correcto}`);
-        timeoutTrial = setTimeout(newTrial, 2000);
+        timeoutReto = setTimeout(nuevoReto, 2000);
       }
 
-      // If applicable, activate repetition sequence (this overwrites any previous sequence)
+      // Si corresponde, activa la secuencia de repetición (esto sobreescribe cualquier secuencia previa)
       if (activarSecuencia) {
         activarRepeticion(filaActual, colActual);
       }
     }
 
-    function newTrial() {
+    function nuevoReto() {
       if (!juegoIniciado) {
         limpiarMatriz();
         ocultarCruz();
         updateMobileChallenge();
         return;
       }
-      if (timeoutTrial) {
-        clearTimeout(timeoutTrial);
-        timeoutTrial = null;
+      if (timeoutReto) {
+        clearTimeout(timeoutReto);
+        timeoutReto = null;
       }
       limpiarMatriz();
 
-      // Cell selection based on repetition rule or normal
+      // Selección de celda según regla de repetición o normal
       let celda;
       if (repeticionActiva) {
         celda = siguienteCeldaRepeticion();
         if (!celda) {
-          // End special sequence, return to normal rule
+          // Termina la secuencia especial, vuelve a la regla normal
           [filaActual, colActual] = elegirCeldaPorErrores();
         } else {
           [filaActual, colActual] = celda;
@@ -1894,11 +1901,11 @@
       // Update mobile challenge display
       updateMobileChallenge();
 
-      // Highlight row
+      // Resalta fila
       document.querySelectorAll('#matriz tbody tr').forEach((tr, idx) => {
         if (idx === filaActual - 1) tr.classList.add('highlight-row');
       });
-      // Highlight column (all cells in the column)
+      // Resalta columna (todas las celdas de la columna)
       document.querySelectorAll('#matriz thead th').forEach((th, idx) => {
         if (idx === colActual) th.classList.add('highlight-col');
       });
@@ -1963,27 +1970,26 @@
 
     function reiniciarJuego() {
       detenerCronometro();
-      // Reset all state variables
+      // Reinicia todas las variables de estado
       filaActual = null;
       colActual = null;
       esperando = false;
-      timeoutTrial = null;
+      timeoutReto = null;
       tiempoInicio = null;
-      trialTimes = [];
-      trialResults = [];
+      tiempos = [];
+      resultados = [];
       juegoIniciado = false;
       erroresPorCelda = Array.from({length:12}, () => Array(12).fill(0));
       highScore = null;
-      // Clear the interface
+      // Limpia la interfaz
       document.getElementById('start-btn').style.display = '';
-      document.getElementById('stop-btn').style.display = 'none';
-      document.getElementById('cronometro').textContent = "⏱️ Current session time: 00:00";
-      document.getElementById('ultimo-tiempo').textContent = "⚡ Last trial: -- s";
+      document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
+      document.getElementById('ultimo-tiempo').textContent = "⚡ Last challenge: -- s";
       document.getElementById('feedback').textContent = "";
-      document.getElementById('score').textContent = "🎯 Current Session Score: --";
-      document.getElementById('highscore').textContent = "🏆 Session best: --";
-      document.getElementById('promedio-tiempo').textContent = "📊 Avg time (last 10): -- s";
-      document.getElementById('porcentaje-correctas').textContent = "✅ Avg accuracy (last 10): --%";
+      document.getElementById('score').textContent = "🎯 Score: --";
+      document.getElementById('highscore').textContent = "🏆 Higher Score: --";
+      document.getElementById('promedio-tiempo').textContent = "📊 Average: -- s";
+      document.getElementById('porcentaje-correctas').textContent = "✅ Last 10: -- % correct";
       limpiarMatriz();
       ocultarCruz();
       updateMobileChallenge();
@@ -2000,8 +2006,8 @@
       limpiarMatriz();
       ocultarCruz();
       detenerCronometro();
-      document.getElementById('cronometro').textContent = "⏱️ Current session time: 00:00";
-      document.getElementById('ultimo-tiempo').textContent = "⚡ Last trial: -- s";
+      document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
+      document.getElementById('ultimo-tiempo').textContent = "⚡ Last challenge: -- s";
       // Make sure the reset button is visible on load
       document.getElementById('reset-btn').style.display = '';
       
