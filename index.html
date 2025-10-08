@@ -238,15 +238,6 @@
       box-shadow: 0 6px 20px rgba(250, 112, 154, 0.4);
     }
     
-    #screenshot-btn {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      color: white;
-    }
-    
-    #screenshot-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
-    }
     
     a button {
       background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -836,9 +827,8 @@
             </div>
           </div>
         </div>
-        <button id="start-btn" onclick="iniciarJuego()">🚀 Start Game!</button>
+    <button id="start-btn" onclick="iniciarJuego()">🚀 Start Game!</button>
   <button id="reset-btn" onclick="reiniciarJuego()" aria-label="Reiniciar cronómetro" title="Reinicia el tiempo del juego">🔄 Reiniciar Tiempo</button>
-  <button id="screenshot-btn" aria-label="Tomar captura" title="Guarda una imagen del progreso">📸 Captura de Pantalla</button>
         <a href="https://forms.gle/AvHgLfGM7LdmSfbt6" target="_blank" rel="noopener" style="text-decoration:none;">
           <button type="button">💡 Send Suggestions</button>
         </a>
@@ -1979,29 +1969,7 @@
       }
     };
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
-    document.getElementById('screenshot-btn').onclick = function() {
-      // Selecciona el área que quieres capturar (puedes ajustar el selector)
-      const area = document.getElementById('juego-controls');
-      if (typeof html2canvas !== "function" && typeof html2canvas !== "object") {
-        alert('No se pudo cargar html2canvas. Intenta recargar la página.');
-        return;
-      }
-      html2canvas(area).then(canvas => {
-        // Crea un enlace para descargar la imagen
-        const link = document.createElement('a');
-        link.download = 'pantallazo_score.png';
-        link.href = canvas.toDataURL();
-        link.click();
-        // Opcional: muestra un mensaje
-        alert('📸 Screenshot saved! You can send it to your parent and ask for your prize! 🎁✨');
-      }).catch(err => {
-        alert('⚠️ An error occurred while generating the screenshot.');
-        console.error(err);
-      });
-    };
-    
     // Initialize user system when page loads
     document.addEventListener('DOMContentLoaded', async function() {
       await initializeUserSystem();
