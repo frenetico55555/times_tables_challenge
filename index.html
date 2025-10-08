@@ -897,7 +897,7 @@
       </script>
     </tbody>
   </table>
-  <div id="highscore-floating"><span id="score">🎯 Current session highest score</span><span id="highscore">🏆 All sessions higher score</span></div>
+  <div id="highscore-floating"><span id="score">🎯 Last 10 trials score</span><span id="highscore">🏆 All sessions higher score</span></div>
     </div>
   </div>
   <!-- Firebase Configuration -->
@@ -1444,11 +1444,11 @@
   document.getElementById('porcentaje-correctas').textContent = `✅ Precision (last 10): -- % correct`;
       }
       // Score
-  let scoreText = "🎯 Current session highest score";
+  let scoreText = "🎯 Last 10 trials score";
       let score = null;
       if (porcentaje !== null && prom !== null && prom > 0) {
         score = (porcentaje / prom) * 100;
-  scoreText = `🎯 Current session highest score: ${score.toFixed(1)}`;
+  scoreText = `🎯 Last 10 trials score: ${score.toFixed(1)}`;
       }
       document.getElementById('score').textContent = scoreText;
 
@@ -1486,7 +1486,7 @@
         
         // Show personal best vs session best
         if (currentUser && currentUser.personalBest && currentUser.personalBest !== highScore) {
-          highscoreElem.textContent = `🏆 Session: ${highScore.toFixed(1)} | Personal: ${currentUser.personalBest.toFixed(1)}`;
+          highscoreElem.textContent = `🏆 Current session highest score: ${highScore.toFixed(1)} | All sessions highest score: ${currentUser.personalBest.toFixed(1)}`;
         } else {
           highscoreElem.textContent = `🏆 All sessions higher score: ${highScore.toFixed(1)}`;
         }
@@ -1510,9 +1510,9 @@
           mobileAvg.textContent = `📊 Avg: --`;
         }
         if (score !== null) {
-          mobileScore.textContent = `🎯 Current session highest score: ${score.toFixed(1)}`;
+          mobileScore.textContent = `🎯 Last 10 trials score: ${score.toFixed(1)}`;
         } else {
-          mobileScore.textContent = `🎯 Current session highest score`;
+          mobileScore.textContent = `🎯 Last 10 trials score`;
         }
       }
     }
