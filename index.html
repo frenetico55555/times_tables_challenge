@@ -992,21 +992,28 @@
         const stored = localStorage.getItem('multiplicationGameUsers');
         if (stored) {
           usersDatabase = JSON.parse(stored);
+          console.log('Loaded', Object.keys(usersDatabase).length, 'users from localStorage');
+        } else {
+          console.log('No users found in localStorage');
         }
         
-        // Then sync with Firebase to get all users
-        const usersRef = window.firestore.collection(window.db, 'users');
-        const querySnapshot = await window.firestore.getDocs(usersRef);
-        
-        querySnapshot.forEach((doc) => {
-          const userData = doc.data();
-          usersDatabase[doc.id] = userData;
-        });
-        
-        // Save merged data back to localStorage
-        localStorage.setItem('multiplicationGameUsers', JSON.stringify(usersDatabase));
-        
-        console.log('Loaded', Object.keys(usersDatabase).length, 'users from Firebase');
+        // Then try to sync with Firebase to get all users
+        if (window.firestore && window.db) {
+          const usersRef = window.firestore.collection(window.db, 'users');
+          const querySnapshot = await window.firestore.getDocs(usersRef);
+          
+          querySnapshot.forEach((doc) => {
+            const userData = doc.data();
+            usersDatabase[doc.id] = userData;
+          });
+          
+          // Save merged data back to localStorage
+          localStorage.setItem('multiplicationGameUsers', JSON.stringify(usersDatabase));
+          
+          console.log('Loaded', Object.keys(usersDatabase).length, 'users from Firebase');
+        } else {
+          console.log('Firebase not available - using localStorage only');
+        }
       } catch (error) {
         console.error('Error loading users from Firebase:', error);
         // Fallback to localStorage if Firebase fails
@@ -1014,6 +1021,7 @@
           const stored = localStorage.getItem('multiplicationGameUsers');
           if (stored) {
             usersDatabase = JSON.parse(stored);
+            console.log('Using', Object.keys(usersDatabase).length, 'users from localStorage (Firebase fallback)');
           }
         } catch (localError) {
           console.error('Error loading from localStorage:', localError);
@@ -1116,30 +1124,21 @@
       const dropdown = document.getElementById('existing-users');
       dropdown.innerHTML = '<option value="">-- Select a player --</option>';
       
-      // Try to get users from Firebase first
-      try {
-        const usersRef = window.firestore.collection(window.db, 'users');
-        // For now, we'll use the local database and load users as needed
-        // In a full implementation, you might want to get all user names
-        
-        const users = Object.keys(usersDatabase).sort();
-        users.forEach(username => {
-          const option = document.createElement('option');
-          option.value = username;
-          option.textContent = username;
-          dropdown.appendChild(option);
-        });
-      } catch (error) {
-        console.error('Error updating user dropdown:', error);
-        // Fallback to localStorage data
-        const users = Object.keys(usersDatabase).sort();
-        users.forEach(username => {
-          const option = document.createElement('option');
-          option.value = username;
-          option.textContent = username;
-          dropdown.appendChild(option);
-        });
+      // Get users from usersDatabase (which includes both Firebase and localStorage data)
+      const users = Object.keys(usersDatabase).sort();
+      
+      if (users.length === 0) {
+        console.log('No users found in database');
+      } else {
+        console.log('Found', users.length, 'users:', users);
       }
+      
+      users.forEach(username => {
+        const option = document.createElement('option');
+        option.value = username;
+        option.textContent = username;
+        dropdown.appendChild(option);
+      });
     }
     
     // Show user statistics
@@ -1179,8 +1178,9 @@
       const dropdown = document.getElementById('existing-users');
       const nameInput = document.getElementById('nombre-jugador');
       const passwordSection = document.getElementById('password-section');
-      
+
       if (existingRadio.checked) {
+        console.log('[UserTypeChange] Existing selected. Users in DB:', Object.keys(usersDatabase));
         dropdown.style.display = 'block';
         nameInput.style.display = 'none';
         passwordSection.style.display = 'none';
@@ -1188,6 +1188,8 @@
         clearPasswordField();
         hideUserStats();
         currentUser = null;
+        // Force refresh dropdown in case users loaded after initial render
+        updateUserDropdown();
       } else {
         dropdown.style.display = 'none';
         nameInput.style.display = 'block';
@@ -1377,16 +1379,19 @@
     async function initializeUserSystem() {
       await loadUsersDatabase();
       await updateUserDropdown();
-      
-      // Event listeners
+      console.log('[Init] Users after load:', Object.keys(usersDatabase));
+      // Auto-switch to existing if there are already users stored (optional UX improvement)
+      if (Object.keys(usersDatabase).length > 0) {
+        document.getElementById('existing-user').checked = true;
+        document.getElementById('new-user').checked = false;
+      }
+      handleUserTypeChange();
+      // Event listeners (ensure added after potential auto-switch)
       document.getElementById('existing-user').addEventListener('change', handleUserTypeChange);
       document.getElementById('new-user').addEventListener('change', handleUserTypeChange);
       document.getElementById('existing-users').addEventListener('change', handleExistingUserSelection);
       document.getElementById('nombre-jugador').addEventListener('input', handleNewUserInput);
       document.getElementById('user-password').addEventListener('input', handlePasswordInput);
-      
-      // Initialize state
-      handleUserTypeChange();
     }
     
     // ============= END USER REGISTRATION SYSTEM =============
@@ -1774,7 +1779,7 @@
       }
       // Shuffle and take 10 distinct
       for (let i = posibles.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(Math.random() * (i +  1));
         [posibles[i], posibles[j]] = [posibles[j], posibles[i]];
       }
       let intercaladas = posibles.slice(0, 10);
