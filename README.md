@@ -1,6 +1,6 @@
 # 🎮 Multiplication Tables Game (1 to 12) ⭐
 
-![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Platform](https://img.shields.io/badge/platform-Web-orange.svg)
 
@@ -17,12 +17,11 @@ This is a **web-based multiplication game** created to help kids (ages 6-12) lea
 
 ---
 
-## 🆕 New in v1.1: Multi-user, Secure Progress & Visual History
+## 🆕 New in v1.1: Multi-user, Secure Progress & (Previously) Visual History
 
 - 👤 **User Registration & Login** – Each child can create a personal account with a simple password
 - 🔐 **Password Protection** – Only the correct password allows access to a user's progress
-- 📈 **Score History Panel** – See your last 10 scores and session dates
-- ✨ **Sparkline Visualization** – Mini graph showing recent score evolution (desktop & mobile)
+- (Removed in 1.1.1) 📈 **Score History Panel** & ✨ **Sparkline Visualization** – Simplified UI now focuses on core performance metrics.
 - 🏅 **Personal Best Tracking** – Shows personal best vs current session performance
 - 🧑‍🎓 **Kid & Parent Friendly** – Clear messages, accessible interface and feedback
 - 🌍 **Fully Responsive & Accessible** – Works across desktop, tablet and mobile
@@ -248,7 +247,7 @@ If you find this helpful, please:
 
 ## 🌟 Version
 
-**Current Version**: 1.1.0 (Multi-user & Cloud Sync)  
+**Current Version**: 1.1.1 (UI Cleanup: removed history panels)  
 **Release Date**: October 8, 2025
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.

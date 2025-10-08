@@ -1,3 +1,22 @@
+## [1.1.1] - 2025-10-08
+
+### ♻️ UI Cleanup & Simplification
+
+Removed user stats panel (`#user-stats`) and per-user history panel (`#user-history-panel`) to streamline the interface and reduce cognitive load. Under-the-hood session data persistence remains (for potential future analytics or reinstatement), but no longer shown in the UI.
+
+#### ✨ Changes
+
+- Removed visual panels showing total sessions, personal best, last played date, and score history list.
+- Neutralized related JavaScript functions (`showUserStats`, `hideUserStats`) into no-ops.
+- Pruned unused DOM manipulation and styles to reduce bundle weight and repaint cost.
+- Kept core scoring indicators (Last 10 trials score, Current session highest score, All sessions higher score).
+
+#### 🔧 Rationale
+
+Early feedback indicated the extra panels distracted younger users; focusing on immediate performance metrics improves clarity and motivation.
+
+---
+
 ## [1.1.0] - 2025-10-08
 
 ### 🆕 Multi-user, Secure Progress & Visual History
@@ -19,6 +38,7 @@
 - Pulido final de experiencia y validación de errores
 
 ---
+
 # Changelog
 
 All notable changes to the Multiplication Tables Game will be documented in this file.
