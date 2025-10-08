@@ -841,7 +841,7 @@
   <!-- Mobile compact stats bar -->
   <div id="mobile-stats-bar">
     <span id="mobile-avg">📊 Avg: -- s</span>
-    <span id="mobile-score">🎯 Score: --</span>
+    <span id="mobile-score">🎯 Current Session Score: --</span>
   </div>
   
   <script>
@@ -947,7 +947,7 @@
   
   <!-- Score displays below matrix -->
   <div id="score-container">
-    <span id="score">🎯 Score: --</span>
+    <span id="score">🎯 Current Session Score: --</span>
     <span id="highscore">🏆 Session best: --</span>
   </div>
     </div>
@@ -1520,11 +1520,11 @@
         document.getElementById('porcentaje-correctas').textContent = `✅ Accuracy (last 10): --%`;
       }
       // Score calculation
-      let scoreText = "🎯 Score: --";
+      let scoreText = "🎯 Current Session Score: --";
       let score = null;
       if (porcentaje !== null && prom !== null && prom > 0) {
         score = (porcentaje / prom) * 100;
-        scoreText = `🎯 Score: ${score.toFixed(1)}`;
+        scoreText = `🎯 Current Session Score: ${score.toFixed(1)}`;
       }
       document.getElementById('score').textContent = scoreText;
 
@@ -1564,14 +1564,14 @@
         if (currentUser && currentUser.personalBest && currentUser.personalBest !== highScore) {
           highscoreElem.textContent = `🏆 Session: ${highScore.toFixed(1)} | Personal: ${currentUser.personalBest.toFixed(1)}`;
         } else {
-          highscoreElem.textContent = `🏆 Higher Score: ${highScore.toFixed(1)}`;
+          highscoreElem.textContent = `🏆 All Sessions Higher Score: ${highScore.toFixed(1)}`;
         }
       } else {
         highScore = null;
         if (currentUser && currentUser.personalBest) {
           highscoreElem.textContent = `🏆 Personal Best: ${currentUser.personalBest.toFixed(1)}`;
         } else {
-          highscoreElem.textContent = "🏆 Higher Score: --";
+          highscoreElem.textContent = "🏆 All Sessions Higher Score: --";
         }
         highscoreElem.classList.remove('highscore-flash');
       }
@@ -1586,9 +1586,9 @@
           mobileAvg.textContent = `📊 Avg: --`;
         }
         if (score !== null) {
-          mobileScore.textContent = `🎯 Score: ${score.toFixed(1)}`;
+          mobileScore.textContent = `🎯 Current Session Score: ${score.toFixed(1)}`;
         } else {
-          mobileScore.textContent = `🎯 Score: --`;
+          mobileScore.textContent = `🎯 Current Session Score: --`;
         }
       }
     }
@@ -2083,7 +2083,7 @@
       document.getElementById('cronometro').textContent = "⏱️ Session time: 00:00";
       document.getElementById('ultimo-tiempo').textContent = "⚡ Last trial: -- s";
       document.getElementById('feedback').textContent = "";
-      document.getElementById('score').textContent = "🎯 Score: --";
+      document.getElementById('score').textContent = "🎯 Current Session Score: --";
       document.getElementById('highscore').textContent = "🏆 Session best: --";
       document.getElementById('promedio-tiempo').textContent = "📊 Avg (last 10): -- s";
       document.getElementById('porcentaje-correctas').textContent = "✅ Accuracy (last 10): --%";
