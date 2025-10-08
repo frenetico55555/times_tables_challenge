@@ -402,6 +402,27 @@
       80%  { transform: scale(1.1) translateY(0) rotate(0deg);}
       100% { transform: scale(1) translateY(0) rotate(0deg);}
     }
+
+    /* Floating highscore container positioned just below bottom-right of matrix */
+    #highscore-floating {
+      position: relative;
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+      padding-right: 4px;
+    }
+    #highscore-floating #highscore {
+      background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      border-radius: 14px;
+      padding: 10px 18px;
+      font-size: clamp(0.9em, 1vw, 1.05em) !important;
+      letter-spacing: 0.5px;
+    }
+    @media (max-width: 900px) {
+      #highscore-floating { justify-content: center; }
+    }
     
     /* User Registration System Styles */
     #user-selector {
@@ -823,14 +844,13 @@
         <span id="feedback"></span>
       </div>
       
-      <div id="stats">
+    <div id="stats">
   <span id="cronometro">⏱️ Tiempo total: 00:00</span>
   <span id="ultimo-tiempo">⚡ Último reto: -- s</span>
   <span id="promedio-tiempo">📊 Promedio: -- s</span>
   <span id="porcentaje-correctas">✅ Últimos 10: -- % correctas</span>
   <span id="score">🎯 Score: --</span>
-  <span id="highscore">🏆 Mejor Score: --</span>
-      </div>
+    </div>
     </div>
     
     <!-- Right Panel: Game Table -->
@@ -868,6 +888,7 @@
       </script>
     </tbody>
   </table>
+  <div id="highscore-floating"><span id="highscore">🏆 Mejor Score: --</span></div>
     </div>
   </div>
   <!-- Firebase Configuration -->
