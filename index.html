@@ -1109,21 +1109,16 @@
         new Date(user.lastPlayed).toLocaleDateString() : 'Never';
       document.getElementById('user-stats').style.display = 'block';
 
-      // Poblar historial de scores
+      // Mostrar solo el sparkline, sin la lista de scores
       const historyPanel = document.getElementById('user-history-panel');
       const historyList = document.getElementById('user-history-list');
+      
+      // Ocultar la lista de scores
+      historyList.style.display = 'none';
+      
       if (user.sessions && user.sessions.length > 0) {
-        historyList.innerHTML = '';
-        // Mostrar los últimos 10 scores (más recientes primero)
-        user.sessions.slice(-10).reverse().forEach(session => {
-          const li = document.createElement('li');
-          const dateStr = new Date(session.date).toLocaleDateString();
-          li.textContent = `${dateStr}: ${session.score.toFixed(1)}`;
-          historyList.appendChild(li);
-        });
         historyPanel.style.display = 'block';
       } else {
-        historyList.innerHTML = '<li>No history yet</li>';
         historyPanel.style.display = 'block';
       }
     }
