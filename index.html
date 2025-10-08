@@ -838,7 +838,6 @@
               <div>📅 <strong>Última vez:</strong> <span id="user-last-played">Nunca</span></div>
             </div>
             <div id="user-history-panel" style="margin-top: 0.5em; padding: 0.5em; background: rgba(255,255,255,0.08); border-radius: 8px; font-size: 0.9em; display: none; max-height: 180px; overflow-y: auto;">
-              <div style="font-weight: bold; margin-bottom: 0.3em;">📈 Evolución de tu Score</div>
               <ul id="user-history-list" style="list-style: none; padding-left: 0; margin: 0;">
                 <!-- Score history will be populated here -->
               </ul>
@@ -1072,13 +1071,9 @@
         
         const users = Object.keys(usersDatabase).sort();
         users.forEach(username => {
-          const user = usersDatabase[username];
           const option = document.createElement('option');
           option.value = username;
           option.textContent = username;
-          if (user.personalBest) {
-            option.textContent += ` (Best: ${user.personalBest.toFixed(1)})`;
-          }
           dropdown.appendChild(option);
         });
       } catch (error) {
@@ -1086,13 +1081,9 @@
         // Fallback to localStorage data
         const users = Object.keys(usersDatabase).sort();
         users.forEach(username => {
-          const user = usersDatabase[username];
           const option = document.createElement('option');
           option.value = username;
           option.textContent = username;
-          if (user.personalBest) {
-            option.textContent += ` (Best: ${user.personalBest.toFixed(1)})`;
-          }
           dropdown.appendChild(option);
         });
       }
