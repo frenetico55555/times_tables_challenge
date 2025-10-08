@@ -517,11 +517,6 @@
       transform: scale(1.02);
     }
     
-    #user-stats {
-      color: white;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-      animation: fadeIn 0.5s ease;
-    }
     
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-10px); }
@@ -881,17 +876,7 @@
               </div>
             </div>
             
-            <div id="user-stats" style="margin-top: 0.5em; padding: 0.5em; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.9em; display: none;">
-              <div>🎮 <strong>Partidas jugadas:</strong> <span id="user-sessions">0</span></div>
-              <div>🏆 <strong>Mejor score:</strong> <span id="user-best">--</span></div>
-              <div>📅 <strong>Última vez:</strong> <span id="user-last-played">Nunca</span></div>
-            </div>
-            <div id="user-history-panel" style="margin-top: 0.5em; padding: 0.5em; background: rgba(255,255,255,0.08); border-radius: 8px; font-size: 0.9em; display: none; max-height: 180px; overflow-y: auto;">
-              <div style="font-weight: bold; margin-bottom: 0.3em;">📈 Evolución de tu Score</div>
-              <ul id="user-history-list" style="list-style: none; padding-left: 0; margin: 0;">
-                <!-- Score history will be populated here -->
-              </ul>
-            </div>
+            <!-- Removed user stats and history panel -->
           </div>
         </div>
   <button id="start-btn" onclick="iniciarJuego()">🚀 Start game session</button>
@@ -1108,39 +1093,8 @@
     async function updateUserDropdown() { /* No longer needed (manual input) */ }
     
     // Show user statistics
-    function showUserStats(username) {
-      const user = usersDatabase[username];
-      if (!user) return;
-      
-      document.getElementById('user-sessions').textContent = user.totalSessions;
-      document.getElementById('user-best').textContent = user.personalBest ? user.personalBest.toFixed(1) : '--';
-      document.getElementById('user-last-played').textContent = user.lastPlayed ? 
-        new Date(user.lastPlayed).toLocaleDateString() : 'Never';
-      document.getElementById('user-stats').style.display = 'block';
-
-      // Poblar historial de scores
-      const historyPanel = document.getElementById('user-history-panel');
-      const historyList = document.getElementById('user-history-list');
-      if (user.sessions && user.sessions.length > 0) {
-        historyList.innerHTML = '';
-        // Mostrar los últimos 10 scores (más recientes primero)
-        user.sessions.slice(-10).reverse().forEach(session => {
-          const li = document.createElement('li');
-          const dateStr = new Date(session.date).toLocaleDateString();
-          li.textContent = `${dateStr}: ${session.score.toFixed(1)}`;
-          historyList.appendChild(li);
-        });
-        historyPanel.style.display = 'block';
-      } else {
-        historyList.innerHTML = '<li>No history yet</li>';
-        historyPanel.style.display = 'block';
-      }
-    }
-    
-    // Hide user statistics
-    function hideUserStats() {
-      document.getElementById('user-stats').style.display = 'none';
-    }
+    function showUserStats(username) { /* stats panel removed */ }
+    function hideUserStats() { /* stats panel removed */ }
     
     // Handle user type selection
     function handleUserTypeChange() {
@@ -1226,15 +1180,13 @@
               passwordInput.style.backgroundColor = 'rgba(85, 239, 196, 0.1)';
               currentUser = await getUserFromFirebase(username);
               usersDatabase[username] = currentUser;
-              showUserStats(username);
+              showUserStats(username); // no-op (panels removed)
               jugador = username;
-              document.getElementById('user-history-panel').style.display = 'block';
-              document.getElementById('user-stats').style.display = 'block';
             } else {
               passwordInput.style.borderColor = '#ff6b6b';
               passwordInput.style.backgroundColor = 'rgba(255, 107, 107, 0.1)';
               currentUser = null;
-              hideUserStats();
+              // hideUserStats(); panel removed
               jugador = "";
             }
         }
@@ -1293,10 +1245,6 @@
             nameInput.setCustomValidity('');
             jugador = username;
           }
-      // Mensaje accesible si no hay sesiones
-      if (user.sessions && user.sessions.length === 0) {
-        historyList.innerHTML = '<li style="color:#aaa;font-size:0.95em;">¡Juega una partida para ver tu progreso aquí!</li>';
-      }
         }
         currentUser = null; // Will be created when game starts
       } else {
@@ -1516,9 +1464,7 @@
             saveUserSession(jugador, score, sessionData);
             
             // Update user stats display if visible
-            if (document.getElementById('user-stats').style.display !== 'none') {
-              showUserStats(jugador);
-            }
+            // stats panel removed
           }
           
           // Efecto visual: rojo, titilar, saltar y resplandor
