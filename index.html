@@ -6,7 +6,7 @@
   <meta name="description" content="Interactive multiplication tables game for kids ages 6-12. Learn multiplication from 1 to 12 with adaptive learning, real-time statistics, and fun animations!">
   <meta name="keywords" content="multiplication, tables, game, math, education, kids, learning, interactive, adaptive">
   <meta name="author" content="Rodrigo Figueroa">
-  <meta name="version" content="1.0.1">
+  <meta name="version" content="1.1.1">
   <meta name="theme-color" content="#667eea">
   
   <!-- Open Graph / Facebook -->
@@ -228,25 +228,7 @@
       box-shadow: 0 8px 25px rgba(56, 239, 125, 0.5);
     }
     
-    #reset-btn {
-      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-      color: white;
-    }
     
-    #reset-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(250, 112, 154, 0.4);
-    }
-    
-    #screenshot-btn {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      color: white;
-    }
-    
-    #screenshot-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
-    }
     
     a button {
       background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -420,6 +402,82 @@
       80%  { transform: scale(1.1) translateY(0) rotate(0deg);}
       100% { transform: scale(1) translateY(0) rotate(0deg);}
     }
+
+    /* Floating highscore container positioned just below bottom-right of matrix */
+    #highscore-floating {
+      position: relative;
+      width: 100%;
+      display: inline-flex;
+      justify-content: flex-end;
+      align-items: stretch;
+      gap: 10px;
+      margin-top: 8px;
+      padding-right: 4px;
+      flex-wrap: wrap;
+    }
+  #highscore-floating #score,
+  #highscore-floating #session-highscore,
+  #highscore-floating #highscore {
+      background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      border-radius: 14px;
+      padding: 10px 18px;
+      font-size: clamp(0.9em, 1vw, 1.05em) !important;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      font-weight: 700;
+    }
+    #highscore-floating #score {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%) !important;
+    }
+    #highscore-floating #highscore.global-highscore {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 40%, #ffd166 100%) !important;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.6), 0 6px 25px rgba(255,140,0,0.5);
+      position: relative;
+      isolation: isolate;
+    }
+    #highscore-floating #highscore.global-highscore:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 2px;
+      background: linear-gradient(120deg, rgba(255,255,255,0.6), rgba(255,215,0,0.9), rgba(255,255,255,0.6));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+    #highscore-floating #highscore.global-highscore:after {
+      content: "★";
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: radial-gradient(circle at 30% 30%, #fff 0%, #ffd700 60%, #ff8c00 100%);
+      color: #a85b00;
+      font-size: 0.9em;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      animation: starPulse 2.5s ease-in-out infinite;
+    }
+    @keyframes starPulse {
+      0%,100% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+      50% { transform: scale(1.15) rotate(8deg); filter: brightness(1.2); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #highscore-floating #highscore.global-highscore:after { animation: none; }
+    }
+    @media (max-width: 900px) {
+      #highscore-floating { justify-content: center; }
+    }
     
     /* User Registration System Styles */
     #user-selector {
@@ -459,11 +517,6 @@
       transform: scale(1.02);
     }
     
-    #user-stats {
-      color: white;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-      animation: fadeIn 0.5s ease;
-    }
     
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-10px); }
@@ -823,36 +876,20 @@
               </div>
             </div>
             
-            <div id="user-stats" style="margin-top: 0.5em; padding: 0.5em; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.9em; display: none;">
-              <div>🎮 <strong>Partidas jugadas:</strong> <span id="user-sessions">0</span></div>
-              <div>🏆 <strong>Mejor score:</strong> <span id="user-best">--</span></div>
-              <div>📅 <strong>Última vez:</strong> <span id="user-last-played">Nunca</span></div>
-            </div>
-            <div id="user-history-panel" style="margin-top: 0.5em; padding: 0.5em; background: rgba(255,255,255,0.08); border-radius: 8px; font-size: 0.9em; display: none; max-height: 180px; overflow-y: auto;">
-              <div style="font-weight: bold; margin-bottom: 0.3em;">📈 Evolución de tu Score</div>
-              <ul id="user-history-list" style="list-style: none; padding-left: 0; margin: 0;">
-                <!-- Score history will be populated here -->
-              </ul>
-            </div>
+            <!-- Removed user stats and history panel -->
           </div>
         </div>
-        <button id="start-btn" onclick="iniciarJuego()">🚀 Start Game!</button>
-  <button id="reset-btn" onclick="reiniciarJuego()" aria-label="Reiniciar cronómetro" title="Reinicia el tiempo del juego">🔄 Reiniciar Tiempo</button>
-  <button id="screenshot-btn" aria-label="Tomar captura" title="Guarda una imagen del progreso">📸 Captura de Pantalla</button>
-        <a href="https://forms.gle/AvHgLfGM7LdmSfbt6" target="_blank" rel="noopener" style="text-decoration:none;">
-          <button type="button">💡 Send Suggestions</button>
-        </a>
+  <button id="start-btn" onclick="iniciarJuego()">🚀 Start game session</button>
+        <!-- Removed Send Suggestions button -->
         <span id="feedback"></span>
       </div>
       
-      <div id="stats">
-  <span id="cronometro">⏱️ Tiempo total: 00:00</span>
-  <span id="ultimo-tiempo">⚡ Último reto: -- s</span>
-  <span id="promedio-tiempo">📊 Promedio: -- s</span>
-  <span id="porcentaje-correctas">✅ Últimos 10: -- % correctas</span>
-  <span id="score">🎯 Score: --</span>
-  <span id="highscore">🏆 Mejor Score: --</span>
-      </div>
+    <div id="stats">
+  <span id="cronometro">⏱️ Total session time: 00:00</span>
+  <span id="ultimo-tiempo">⚡ Last trial: -- s</span>
+  <span id="promedio-tiempo">📊 Average delay / trial (last 10): -- s</span>
+  <span id="porcentaje-correctas">✅ Precision (last 10): -- % correct</span>
+    </div>
     </div>
     
     <!-- Right Panel: Game Table -->
@@ -890,6 +927,7 @@
       </script>
     </tbody>
   </table>
+  <div id="highscore-floating"><span id="score">🎯 Last 10 trials score</span><span id="session-highscore">🏆 Current session highest score</span><span id="highscore" class="global-highscore" aria-label="All sessions highest score (personal best)">🏆 All sessions higher score</span></div>
     </div>
   </div>
   <!-- Firebase Configuration -->
@@ -1055,39 +1093,8 @@
     async function updateUserDropdown() { /* No longer needed (manual input) */ }
     
     // Show user statistics
-    function showUserStats(username) {
-      const user = usersDatabase[username];
-      if (!user) return;
-      
-      document.getElementById('user-sessions').textContent = user.totalSessions;
-      document.getElementById('user-best').textContent = user.personalBest ? user.personalBest.toFixed(1) : '--';
-      document.getElementById('user-last-played').textContent = user.lastPlayed ? 
-        new Date(user.lastPlayed).toLocaleDateString() : 'Never';
-      document.getElementById('user-stats').style.display = 'block';
-
-      // Poblar historial de scores
-      const historyPanel = document.getElementById('user-history-panel');
-      const historyList = document.getElementById('user-history-list');
-      if (user.sessions && user.sessions.length > 0) {
-        historyList.innerHTML = '';
-        // Mostrar los últimos 10 scores (más recientes primero)
-        user.sessions.slice(-10).reverse().forEach(session => {
-          const li = document.createElement('li');
-          const dateStr = new Date(session.date).toLocaleDateString();
-          li.textContent = `${dateStr}: ${session.score.toFixed(1)}`;
-          historyList.appendChild(li);
-        });
-        historyPanel.style.display = 'block';
-      } else {
-        historyList.innerHTML = '<li>No history yet</li>';
-        historyPanel.style.display = 'block';
-      }
-    }
-    
-    // Hide user statistics
-    function hideUserStats() {
-      document.getElementById('user-stats').style.display = 'none';
-    }
+    function showUserStats(username) { /* stats panel removed */ }
+    function hideUserStats() { /* stats panel removed */ }
     
     // Handle user type selection
     function handleUserTypeChange() {
@@ -1173,15 +1180,13 @@
               passwordInput.style.backgroundColor = 'rgba(85, 239, 196, 0.1)';
               currentUser = await getUserFromFirebase(username);
               usersDatabase[username] = currentUser;
-              showUserStats(username);
+              showUserStats(username); // no-op (panels removed)
               jugador = username;
-              document.getElementById('user-history-panel').style.display = 'block';
-              document.getElementById('user-stats').style.display = 'block';
             } else {
               passwordInput.style.borderColor = '#ff6b6b';
               passwordInput.style.backgroundColor = 'rgba(255, 107, 107, 0.1)';
               currentUser = null;
-              hideUserStats();
+              // hideUserStats(); panel removed
               jugador = "";
             }
         }
@@ -1240,10 +1245,6 @@
             nameInput.setCustomValidity('');
             jugador = username;
           }
-      // Mensaje accesible si no hay sesiones
-      if (user.sessions && user.sessions.length === 0) {
-        historyList.innerHTML = '<li style="color:#aaa;font-size:0.95em;">¡Juega una partida para ver tu progreso aquí!</li>';
-      }
         }
         currentUser = null; // Will be created when game starts
       } else {
@@ -1343,14 +1344,14 @@
 
     function actualizarCronometro() {
       if (!tiempoInicioCronometro) {
-        document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
+  document.getElementById('cronometro').textContent = "⏱️ Total session time: 00:00";
         return;
       }
       let ahora = Date.now();
       let diff = Math.floor((ahora - tiempoInicioCronometro) / 1000);
       let min = Math.floor(diff / 60);
       let seg = diff % 60;
-      document.getElementById('cronometro').textContent = `⏱️ Total time: ${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
+  document.getElementById('cronometro').textContent = `⏱️ Total session time: ${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
     }
 
     function limpiarMatriz() {
@@ -1414,35 +1415,36 @@
       if (ultimosTiempos.length > 0) {
         const suma = ultimosTiempos.reduce((a, b) => a + b, 0);
         prom = suma / ultimosTiempos.length;
-        document.getElementById('promedio-tiempo').textContent = `📊 Average: ${prom.toFixed(2)} s`;
+  document.getElementById('promedio-tiempo').textContent = `📊 Average delay / trial (last 10): ${prom.toFixed(2)} s`;
       } else {
-        document.getElementById('promedio-tiempo').textContent = `📊 Average: -- s`;
+  document.getElementById('promedio-tiempo').textContent = `📊 Average delay / trial (last 10): -- s`;
       }
       // Último reto
       if (ultimoTiempo !== null) {
-        document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: ${ultimoTiempo.toFixed(2)} s`;
+  document.getElementById('ultimo-tiempo').textContent = `⚡ Last trial: ${ultimoTiempo.toFixed(2)} s`;
       } else if (ultimosTiempos.length > 0) {
-        document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: ${ultimosTiempos[ultimosTiempos.length-1].toFixed(2)} s`;
+  document.getElementById('ultimo-tiempo').textContent = `⚡ Last trial: ${ultimosTiempos[ultimosTiempos.length-1].toFixed(2)} s`;
       } else {
-        document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: -- s`;
+  document.getElementById('ultimo-tiempo').textContent = `⚡ Last trial: -- s`;
       }
       // % correctas últimos 10
       let porcentaje = null;
       if (ultimosResultados.length > 0) {
         const correctas = ultimosResultados.filter(x => x).length;
         porcentaje = correctas / ultimosResultados.length;
-        document.getElementById('porcentaje-correctas').textContent = `✅ Last 10: ${(porcentaje*100).toFixed(0)}% correct`;
+  document.getElementById('porcentaje-correctas').textContent = `✅ Precision (last 10): ${(porcentaje*100).toFixed(0)}% correct`;
       } else {
-        document.getElementById('porcentaje-correctas').textContent = `✅ Last 10: -- % correct`;
+  document.getElementById('porcentaje-correctas').textContent = `✅ Precision (last 10): -- % correct`;
       }
       // Score
-      let scoreText = "🎯 Score: --";
+  let scoreText = "🎯 Last 10 trials score";
       let score = null;
       if (porcentaje !== null && prom !== null && prom > 0) {
         score = (porcentaje / prom) * 100;
-        scoreText = `🎯 Score: ${score.toFixed(1)}`;
+  scoreText = `🎯 Last 10 trials score: ${score.toFixed(1)}`;
       }
-      document.getElementById('score').textContent = scoreText;
+  document.getElementById('score').textContent = scoreText;
+  const sessionHighElem = document.getElementById('session-highscore');
 
       // Higher Score solo si hay al menos 10 retos
       const highscoreElem = document.getElementById('highscore');
@@ -1462,9 +1464,7 @@
             saveUserSession(jugador, score, sessionData);
             
             // Update user stats display if visible
-            if (document.getElementById('user-stats').style.display !== 'none') {
-              showUserStats(jugador);
-            }
+            // stats panel removed
           }
           
           // Efecto visual: rojo, titilar, saltar y resplandor
@@ -1477,17 +1477,23 @@
         }
         
         // Show personal best vs session best
-        if (currentUser && currentUser.personalBest && currentUser.personalBest !== highScore) {
-          highscoreElem.textContent = `🏆 Session: ${highScore.toFixed(1)} | Personal: ${currentUser.personalBest.toFixed(1)}`;
+        if (sessionHighElem) {
+          sessionHighElem.textContent = `🏆 Current session highest score: ${highScore.toFixed(1)}`;
+        }
+        if (currentUser && currentUser.personalBest) {
+          highscoreElem.textContent = `🏆 All sessions higher score: ${currentUser.personalBest.toFixed(1)}`;
         } else {
-          highscoreElem.textContent = `🏆 Higher Score: ${highScore.toFixed(1)}`;
+          highscoreElem.textContent = `🏆 All sessions higher score: ${highScore.toFixed(1)}`;
         }
       } else {
         highScore = null;
+        if (sessionHighElem) {
+          sessionHighElem.textContent = "🏆 Current session highest score";
+        }
         if (currentUser && currentUser.personalBest) {
-          highscoreElem.textContent = `🏆 Personal Best: ${currentUser.personalBest.toFixed(1)}`;
+          highscoreElem.textContent = `🏆 All sessions higher score: ${currentUser.personalBest.toFixed(1)}`;
         } else {
-          highscoreElem.textContent = "🏆 Higher Score: --";
+          highscoreElem.textContent = "🏆 All sessions higher score";
         }
         highscoreElem.classList.remove('highscore-flash');
       }
@@ -1502,9 +1508,9 @@
           mobileAvg.textContent = `📊 Avg: --`;
         }
         if (score !== null) {
-          mobileScore.textContent = `🎯 Score: ${score.toFixed(1)}`;
+          mobileScore.textContent = `🎯 Last 10 trials score: ${score.toFixed(1)}`;
         } else {
-          mobileScore.textContent = `🎯 Score: --`;
+          mobileScore.textContent = `🎯 Last 10 trials score`;
         }
       }
     }
@@ -1922,36 +1928,6 @@
       }, 1200);
     }
 
-    function reiniciarJuego() {
-      detenerCronometro();
-      // Reinicia todas las variables de estado
-      filaActual = null;
-      colActual = null;
-      esperando = false;
-      timeoutReto = null;
-      tiempoInicio = null;
-      tiempos = [];
-      resultados = [];
-      juegoIniciado = false;
-      erroresPorCelda = Array.from({length:12}, () => Array(12).fill(0));
-      highScore = null;
-      // Limpia la interfaz
-      document.getElementById('start-btn').style.display = '';
-      document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
-      document.getElementById('ultimo-tiempo').textContent = "⚡ Last challenge: -- s";
-      document.getElementById('feedback').textContent = "";
-      document.getElementById('score').textContent = "🎯 Score: --";
-      document.getElementById('highscore').textContent = "🏆 Higher Score: --";
-      document.getElementById('promedio-tiempo').textContent = "📊 Average: -- s";
-      document.getElementById('porcentaje-correctas').textContent = "✅ Last 10: -- % correct";
-      limpiarMatriz();
-      ocultarCruz();
-      updateMobileChallenge();
-      
-      // Remove mobile game active class
-      document.body.classList.remove('mobile-game-active');
-    }
-
     // Al cargar, oculta la cruz y muestra el botón de inicio
     window.onload = function() {
       actualizarStats();
@@ -1960,10 +1936,8 @@
       limpiarMatriz();
       ocultarCruz();
       detenerCronometro();
-      document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
-      document.getElementById('ultimo-tiempo').textContent = "⚡ Last challenge: -- s";
-      // Make sure the reset button is visible on load
-      document.getElementById('reset-btn').style.display = '';
+  document.getElementById('cronometro').textContent = "⏱️ Total session time: 00:00";
+  document.getElementById('ultimo-tiempo').textContent = "⚡ Last trial: -- s";
       
       // Initialize mobile challenge display
       updateMobileChallenge();
@@ -1979,29 +1953,7 @@
       }
     };
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script>
-    document.getElementById('screenshot-btn').onclick = function() {
-      // Selecciona el área que quieres capturar (puedes ajustar el selector)
-      const area = document.getElementById('juego-controls');
-      if (typeof html2canvas !== "function" && typeof html2canvas !== "object") {
-        alert('No se pudo cargar html2canvas. Intenta recargar la página.');
-        return;
-      }
-      html2canvas(area).then(canvas => {
-        // Crea un enlace para descargar la imagen
-        const link = document.createElement('a');
-        link.download = 'pantallazo_score.png';
-        link.href = canvas.toDataURL();
-        link.click();
-        // Opcional: muestra un mensaje
-        alert('📸 Screenshot saved! You can send it to your parent and ask for your prize! 🎁✨');
-      }).catch(err => {
-        alert('⚠️ An error occurred while generating the screenshot.');
-        console.error(err);
-      });
-    };
-    
     // Initialize user system when page loads
     document.addEventListener('DOMContentLoaded', async function() {
       await initializeUserSystem();
