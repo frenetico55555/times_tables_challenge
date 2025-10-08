@@ -1,419 +1,324 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Interactive multiplication tables game for kids ages 6-12. Learn multiplication from 1 to 12 with adaptive learning, real-time statistics, and fun animations!">
-  <meta name="keywords" content="multiplication, tables, game, math, education, kids, learning, interactive, adaptive">
-  <meta name="author" content="Rodrigo Figueroa">
-  <meta name="version" content="1.0.1">
-  <meta name="theme-color" content="#667eea">
-  
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://frenetico55555.github.io/times_tables_challenge/">
-  <meta property="og:title" content="🎮 Multiplication Tables Game (1 to 12) ⭐">
-  <meta property="og:description" content="Fun and interactive game to help kids master multiplication tables!">
-  
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://frenetico55555.github.io/times_tables_challenge/">
-  <meta property="twitter:title" content="🎮 Multiplication Tables Game (1 to 12) ⭐">
-  <meta property="twitter:description" content="Fun and interactive game to help kids master multiplication tables!">
-  
-  <title>🎮 Multiplication Tables Game 1-12 ⭐</title>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
     
+    /*
+      REWRITTEN USER SYSTEM (from scratch)
+      Goals:
+      - Simpler, predictable flow
+      - Immediate persistence when a new user (name + password) is valid
+      - Single source of truth (usersCache) kept in sync with localStorage + Firestore (best-effort)
+      - Clear separation of UI handlers vs data layer
+      - Minimal global surface: expose only required functions/vars used by game logic
+      Public API maintained: saveUserSession(username,...), initializeUserSystem()
+    */
+    const UserManager = (function() {
+      const LS_KEY = 'multiplicationGameUsers';
+      let usersCache = {}; // username -> user object
+      let currentUser = null; // exported later
+      let jugadorAlias = ''; // mirrors global 'jugador'
+
+      // ---------- Data Layer ----------
+      function loadFromLocal() {
+        try {
+          const raw = localStorage.getItem(LS_KEY);
+            if (raw) {
+              usersCache = JSON.parse(raw) || {};
+              console.log('[UserManager] Local users loaded:', Object.keys(usersCache));
+          } else {
+              usersCache = {};
+              console.log('[UserManager] No local users yet');
+          }
+        } catch (e) {
+          console.warn('[UserManager] Failed parsing localStorage', e);
+          usersCache = {};
+        }
+      }
+
+      async function mergeFromFirestore() {
+        if (!(window.firestore && window.db)) {
+          console.log('[UserManager] Firestore not available, skipping cloud sync');
+          return;
+        }
+        try {
+          const usersRef = window.firestore.collection(window.db, 'users');
+          const snap = await window.firestore.getDocs(usersRef);
+          let added = 0;
+          snap.forEach(doc => {
+            const data = doc.data();
+            if (!usersCache[doc.id]) added++;
+            usersCache[doc.id] = data;
+          });
+          persistLocal();
+          console.log(`[UserManager] Firestore sync complete. Total users: ${Object.keys(usersCache).length} (new from cloud: ${added})`);
+        } catch (e) {
+          console.warn('[UserManager] Firestore sync failed', e);
+        }
+      }
+
+      function persistLocal() {
+        try { localStorage.setItem(LS_KEY, JSON.stringify(usersCache)); } catch(e) { console.warn('[UserManager] localStorage save failed', e); }
+      }
+
+      async function persistFirestore(username) {
+        if (!(window.firestore && window.db)) return false;
+        try {
+          const userRef = window.firestore.doc(window.db, 'users', username);
+          await window.firestore.setDoc(userRef, usersCache[username]);
+          return true;
+        } catch(e) {
+          console.warn('[UserManager] Firestore save failed for', username, e);
+          return false;
+        }
+      }
+
+      function baseUser(username, password) {
+        const now = new Date().toISOString();
+        return {
+          name: username,
+          password,  // NOTE: plain text for simplicity
+          createdAt: now,
+          lastPlayed: null,
+          personalBest: null,
+          totalSessions: 0,
+          sessions: []
+        };
+      }
+
+      function validateUsername(name) {
+        if (!name) return 'Name required';
+        if (name.length < 2) return 'Min 2 letters';
+        if (/[^A-Za-z0-9_\- ]/.test(name)) return 'Only letters/numbers/_ - space';
+        return null;
+      }
+
+      function validatePassword(pw) {
+        if (!pw) return 'Password required';
+        if (pw.length < 2) return 'Min 2 chars';
+        return null;
+      }
+
+      async function createUser(username, password) {
+        if (usersCache[username]) throw new Error('User already exists');
+        const user = baseUser(username, password);
+        usersCache[username] = user;
+        persistLocal();
+        persistFirestore(username); // fire & forget
+        currentUser = user;
+        jugadorAlias = username;
+        console.log('[UserManager] Created new user', username);
+        return user;
+      }
+
+      async function verifyUser(username, password) {
+        const user = usersCache[username];
+        if (!user) return false;
+        const ok = user.password === password;
+        if (ok) {
+          currentUser = user;
+          jugadorAlias = username;
+          console.log('[UserManager] Login success', username);
+        }
+        return ok;
+      }
+
+      function recordSession(username, score, sessionData) {
+        const user = usersCache[username];
+        if (!user) { console.warn('[UserManager] Cannot record session, missing user', username); return; }
+        const ses = {
+          date: new Date().toISOString(),
+          score,
+          accuracy: sessionData.accuracy,
+          averageTime: sessionData.averageTime,
+          totalTime: sessionData.totalTime,
+          challenges: sessionData.challenges
+        };
+        user.sessions.push(ses);
+        user.totalSessions++;
+        user.lastPlayed = ses.date;
+        if (user.personalBest == null || score > user.personalBest) user.personalBest = score;
+        if (user.sessions.length > 50) user.sessions = user.sessions.slice(-50);
+        persistLocal();
+        persistFirestore(username);
+      }
+
+      // ---------- UI Layer ----------
+      function populateDropdown() {
+        const dd = document.getElementById('existing-users');
+        if (!dd) return;
+        const users = Object.keys(usersCache).sort();
+        dd.innerHTML = '<option value="">-- Select a player --</option>';
+        if (users.length === 0) {
+          const opt = document.createElement('option');
+          opt.disabled = true; opt.value=''; opt.textContent='(No players yet)';
+          dd.appendChild(opt);
+        } else {
+          users.forEach(u => { const o=document.createElement('option'); o.value=u; o.textContent=u; dd.appendChild(o); });
+        }
+      }
+
+      function updateStatsPanel() {
+        if (!currentUser) { document.getElementById('user-stats').style.display='none'; return; }
+        document.getElementById('user-sessions').textContent = currentUser.totalSessions;
+        document.getElementById('user-best').textContent = currentUser.personalBest != null ? currentUser.personalBest.toFixed(1) : '--';
+        document.getElementById('user-last-played').textContent = currentUser.lastPlayed ? new Date(currentUser.lastPlayed).toLocaleDateString() : 'Never';
+        document.getElementById('user-stats').style.display='block';
+      }
+
+      function resetPasswordField(state='neutral') {
+        const pw = document.getElementById('user-password');
+        pw.value='';
+        pw.style.borderColor = '#667eea';
+        pw.style.backgroundColor = 'white';
+        if (state==='error') { pw.style.borderColor='#ff6b6b'; pw.style.backgroundColor='rgba(255,107,107,0.1)'; }
+        if (state==='ok') { pw.style.borderColor='#55efc4'; pw.style.backgroundColor='rgba(85,239,196,0.1)'; }
+      }
+
+      // Event handlers
+      function onUserTypeChange() {
+        const existingChecked = document.getElementById('existing-user').checked;
+        const dd = document.getElementById('existing-users');
+        const nameInput = document.getElementById('nombre-jugador');
+        const pwSection = document.getElementById('password-section');
+        resetPasswordField();
+        if (existingChecked) {
+          dd.style.display='block';
+          nameInput.style.display='none';
+          nameInput.value='';
+          pwSection.style.display='none';
+          currentUser=null; jugadorAlias=''; updateStatsPanel();
+          populateDropdown();
+        } else {
+          dd.style.display='none';
+          nameInput.style.display='block';
+          pwSection.style.display='none';
+          currentUser=null; jugadorAlias=''; updateStatsPanel();
+        }
+      }
+
+      function onExistingSelect() {
+        const username = document.getElementById('existing-users').value;
+        const pwSection = document.getElementById('password-section');
+        const pw = document.getElementById('user-password');
+        if (username) {
+          pw.placeholder='Enter password...';
+          pwSection.style.display='block';
+          resetPasswordField();
+          currentUser=null; jugadorAlias=''; updateStatsPanel();
+        } else {
+          pwSection.style.display='none';
+          resetPasswordField();
+          currentUser=null; jugadorAlias=''; updateStatsPanel();
+        }
+      }
+
+      function onNewNameInput() {
+        const nameInput = document.getElementById('nombre-jugador');
+        const val = nameInput.value.trim();
+        const pwSection = document.getElementById('password-section');
+        const err = validateUsername(val);
+        if (!val) { pwSection.style.display='none'; nameInput.setCustomValidity(''); jugadorAlias=''; currentUser=null; return; }
+        if (usersCache[val]) {
+          nameInput.setCustomValidity('Name already exists. Choose another or select existing.');
+          nameInput.reportValidity();
+          nameInput.style.borderColor='#ff6b6b';
+          nameInput.style.backgroundColor='rgba(255,107,107,0.1)';
+          pwSection.style.display='none'; jugadorAlias=''; currentUser=null; return;
+        }
+        if (err) {
+          nameInput.setCustomValidity(err); nameInput.reportValidity();
+          nameInput.style.borderColor='#ff6b6b';
+          nameInput.style.backgroundColor='rgba(255,107,107,0.1)';
+          pwSection.style.display='none'; jugadorAlias=''; currentUser=null; return;
+        }
+        nameInput.setCustomValidity('');
+        nameInput.style.borderColor='#667eea';
+        nameInput.style.backgroundColor='white';
+        jugadorAlias = val; currentUser=null;
+        pwSection.style.display='block';
+        document.getElementById('user-password').placeholder='Create password (min 2 chars)';
+      }
+
+      async function onPasswordInput() {
+        const existingChecked = document.getElementById('existing-user').checked;
+        const pw = document.getElementById('user-password');
+        const val = pw.value;
+        if (!val) { resetPasswordField(); return; }
+        if (existingChecked) {
+          const username = document.getElementById('existing-users').value;
+          if (!username) return;
+          if (await verifyUser(username, val)) {
+            resetPasswordField('ok');
+            updateStatsPanel();
+            highScore = currentUser.personalBest; // sync game highscore
+          } else {
+            resetPasswordField('error');
+          }
+        } else {
+          // new user creation path
+          const name = document.getElementById('nombre-jugador').value.trim();
+          if (!name) return;
+          const errPw = validatePassword(val);
+          if (errPw) { resetPasswordField('error'); return; }
+          try {
+            await createUser(name, val);
+            resetPasswordField('ok');
+            updateStatsPanel();
+            highScore = currentUser.personalBest; // will be null
+            populateDropdown(); // now user appears for future sessions
+          } catch(e) {
+            console.warn(e); resetPasswordField('error');
+          }
+        }
+      }
+
+      // ---------- Public wrappers to match previous names ----------
+      function saveUserSessionPublic(username, score, sessionData) {
+        recordSession(username, score, sessionData);
+        updateStatsPanel();
+        highScore = usersCache[username].personalBest; // keep game high score aligned
+      }
+
+      async function initializeUserSystemPublic() {
+        loadFromLocal();
+        populateDropdown();
+        await mergeFromFirestore();
+        populateDropdown();
+        // Auto-select existing tab if users exist
+        if (Object.keys(usersCache).length > 0) {
+          document.getElementById('existing-user').checked = true;
+          document.getElementById('new-user').checked = false;
+        }
+        onUserTypeChange();
+        // Listeners
+        document.getElementById('existing-user').addEventListener('change', onUserTypeChange);
+        document.getElementById('new-user').addEventListener('change', onUserTypeChange);
+        document.getElementById('existing-users').addEventListener('change', onExistingSelect);
+        document.getElementById('nombre-jugador').addEventListener('input', onNewNameInput);
+        document.getElementById('user-password').addEventListener('input', onPasswordInput);
+        console.log('[UserManager] Initialization complete');
+      }
+
+      // Expose minimal API
+      return {
+        get currentUser() { return currentUser; },
+        get users() { return usersCache; },
+        saveUserSessionPublic,
+        initializeUserSystemPublic,
+        get jugador() { return jugadorAlias; },
+        set jugador(v) { jugadorAlias = v; }
+      };
+    })();
+
+    // Maintain the previously expected global function names for compatibility
+    function saveUserSession(username, score, sessionData) { UserManager.saveUserSessionPublic(username, score, sessionData); }
+    async function initializeUserSystem() { await UserManager.initializeUserSystemPublic(); }
+    let currentUser = null; // legacy global for any external references (kept but not primary)
+    Object.defineProperty(window, 'currentUser', { get() { return UserManager.currentUser; } });
+    let usersDatabase = {}; // kept for legacy logs; points to internal cache
+    Object.defineProperty(window, 'usersDatabase', { get() { return UserManager.users; } });
     
-    table { 
-      border-collapse: separate;
-      border-spacing: 2px;
-      margin: 0;
-      font-size: clamp(0.7em, 1.2vw, 1em);
-      width: 100%;
-      max-width: min(70vw, 900px);
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: clamp(8px, 1vw, 12px);
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-      animation: tableFloat 3s ease-in-out infinite;
-    }
-    
-    @keyframes tableFloat {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-5px); }
-    }
-    
-    th, td { 
-      border: none;
-      padding: clamp(0.2em, 0.5vw, 0.35em);
-      text-align: center; 
-      width: clamp(30px, 4vw, 48px);
-      height: clamp(20px, 3vw, 32px);
-      box-sizing: border-box;
-      font-weight: 600;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      font-size: clamp(0.75em, 1vw, 1em);
-    }
-    
-    th { 
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      color: white;
-      font-weight: 700;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-      box-shadow: 0 2px 8px rgba(240, 147, 251, 0.3);
-    }
-    
-    td {
-      background: white;
-      color: #333;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    
-    td:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
-    
-    .highlight-row th, .highlight-row td { 
-      background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important; 
-      animation: pulse 0.6s ease-in-out;
-    }
-    .highlight-col { 
-      background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important; 
-      animation: pulse 0.6s ease-in-out;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.08); }
-    }
-    
-    .highlight-row.red th, .highlight-row.red td,
-    .highlight-col.red { 
-      background: linear-gradient(135deg, #ff7675 0%, #d63031 100%) !important;
-      animation: shake 0.5s ease-in-out;
-    }
-    .highlight-row.green th, .highlight-row.green td,
-    .highlight-col.green { 
-      background: linear-gradient(135deg, #55efc4 0%, #00b894 100%) !important;
-      animation: bounce 0.6s ease-in-out;
-    }
-    
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
-    }
-    
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-    
-    input[type="number"].cell-input { 
-      width: 90%;
-      max-width: 44px;
-      font-size: clamp(0.9em, 1vw, 1.1em); 
-      text-align: center; 
-      padding: 2px;
-      margin: 0;
-      border: 3px solid #667eea;
-      border-radius: 8px;
-      font-weight: 700;
-      color: #667eea;
-      background: #fff;
-      transition: all 0.3s ease;
-      font-family: 'Quicksand', sans-serif;
-    }
-    
-    input[type="number"].cell-input:focus {
-      outline: none;
-      border-color: #f093fb;
-      box-shadow: 0 0 15px rgba(240, 147, 251, 0.5);
-      transform: scale(1.1);
-    }
-    
-    
-    #juego-controls { 
-      margin: 0;
-      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-      padding: clamp(15px, 2vh, 25px);
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-      width: 100%;
-    }
-    
-    #juego-controls > div:first-child {
-      margin-bottom: 1.5em;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    
-    #juego-controls button,
-    #juego-controls a {
-      margin: 5px 0 !important;
-      width: 100%;
-    }
-    
-    #juego-controls a button {
-      width: 100%;
-    }
-    
-    #stats { 
-      margin: 0;
-      font-size: 1em;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      font-family: 'Quicksand', sans-serif;
-      font-weight: 600;
-    }
-    
-    #stats span { 
-      background: white;
-      padding: clamp(8px, 1.2vh, 12px) clamp(12px, 1.5vw, 16px);
-      border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      transition: all 0.3s ease;
-      color: #555;
-      text-align: left;
-      width: 100%;
-      font-size: clamp(0.85em, 1vw, 1em);
-    }
-    
-    #stats span:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3);
-    }
-    
-    button {
-      font-size: clamp(0.85em, 1.1vw, 1em); 
-      padding: clamp(10px, 1.2vh, 12px) clamp(18px, 2vw, 24px); 
-      margin: 0;
-      border: none;
-      border-radius: 25px;
-      cursor: pointer;
-      font-weight: 700;
-      font-family: 'Quicksand', sans-serif;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    #start-btn { 
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-      color: white;
-      font-size: clamp(1.1em, 1.4vw, 1.3em);
-      padding: clamp(16px, 2.2vh, 20px) clamp(28px, 3vw, 36px);
-      animation: pulseButton 2s infinite;
-      margin-top: 0.3em;
-    }
-    
-    @keyframes pulseButton {
-      0%, 100% { transform: scale(1); box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4); }
-      50% { transform: scale(1.05); box-shadow: 0 6px 20px rgba(56, 239, 125, 0.6); }
-    }
-    
-    #start-btn:hover {
-      transform: scale(1.08);
-      box-shadow: 0 8px 25px rgba(56, 239, 125, 0.5);
-    }
-    
-    #reset-btn {
-      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-      color: white;
-    }
-    
-    #reset-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(250, 112, 154, 0.4);
-    }
-    
-    #screenshot-btn {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      color: white;
-    }
-    
-    #screenshot-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
-    }
-    
-    a button {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      color: white;
-    }
-    
-    a button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(240, 147, 251, 0.4);
-    }
-    
-    .oculto { visibility: hidden; }
-    
-    html, body {
-      width: 100vw;
-      min-height: 100vh;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-      font-family: 'Quicksand', sans-serif;
-    }
-    
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-      background-size: 400% 400%;
-      animation: gradientShift 15s ease infinite;
-      padding: 1vh 1vw;
-      overflow-x: hidden;
-    }
-    
-    #main-container {
-      display: flex;
-      flex-direction: row;
-      gap: 2vw;
-      width: 98vw;
-      max-width: 100%;
-      align-items: flex-start;
-      justify-content: center;
-      margin-top: 1vh;
-    }
-    
-    #left-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 1vh;
-      width: clamp(280px, 22vw, 360px);
-      flex-shrink: 0;
-    }
-    
-    #right-panel {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      flex: 1;
-      min-width: 0;
-    }
-    
-    #score-container {
-      display: flex;
-      gap: 20px;
-      margin-top: 15px;
-      justify-content: center;
-      width: 100%;
-      max-width: 800px;
-    }
-    
-    #score-container span {
-      background: white;
-      padding: 12px 24px;
-      border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      transition: all 0.3s ease;
-      color: #555;
-      text-align: center;
-      font-size: clamp(0.95em, 1.1vw, 1.1em);
-      font-family: 'Quicksand', sans-serif;
-      font-weight: 600;
-      flex: 1;
-      min-width: 150px;
-    }
-    
-    #score-container span:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3);
-    }
-    
-    #score-container #score {
-      background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
-    }
-    
-    #score-container #highscore {
-      background: linear-gradient(135deg, #fff9e6 0%, #ffe8b3 100%);
-    }
-    
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    
-    h1 {
-      font-family: 'Fredoka One', cursive;
-      font-size: clamp(1.5em, 4vw, 2.5em);
-      color: white;
-      text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
-      margin: 10px 0;
-      text-align: center;
-      animation: titleBounce 2s ease-in-out infinite;
-    }
-    
-    @keyframes titleBounce {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50% { transform: translateY(-10px) rotate(-2deg); }
-    }
-    
-    label {
-      font-weight: 700;
-      color: #2d3436;
-      font-size: 1.1em;
-      text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
-    }
-    
-    input[type="text"] {
-      font-size: clamp(0.95em, 1.1vw, 1.1em);
-      padding: clamp(8px, 1vh, 10px) clamp(12px, 1.5vw, 15px);
-      border: 3px solid #667eea;
-      border-radius: 15px;
-      font-family: 'Quicksand', sans-serif;
-      font-weight: 600;
-      color: #2d3436;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    
-    input[type="text"]:focus {
-      outline: none;
-      border-color: #f093fb;
-      box-shadow: 0 0 15px rgba(240, 147, 251, 0.5);
-      transform: scale(1.02);
-    }
-    
-    input[type="password"] {
-      font-size: clamp(0.95em, 1.1vw, 1.1em);
-      padding: clamp(8px, 1vh, 10px) clamp(12px, 1.5vw, 15px);
-      border: 3px solid #667eea;
-      border-radius: 15px;
-      font-family: 'Quicksand', sans-serif;
-      font-weight: 600;
-      color: #2d3436;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    
-    input[type="password"]:focus {
-      outline: none;
-      border-color: #f093fb;
-      box-shadow: 0 0 15px rgba(240, 147, 251, 0.5);
-      transform: scale(1.02);
-    }
-    
-    #feedback {
+    // ============= END NEW USER REGISTRATION SYSTEM =============
+    // (Original system removed and replaced above)
       font-size: clamp(1em, 1.2vw, 1.2em);
       font-weight: 700;
       margin-top: clamp(10px, 1.5vh, 15px);
