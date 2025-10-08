@@ -1,6 +1,6 @@
 # 🎮 Multiplication Tables Game (1 to 12) ⭐
 
-![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)
+![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Platform](https://img.shields.io/badge/platform-Web-orange.svg)
 
@@ -17,15 +17,15 @@ This is a **web-based multiplication game** created to help kids (ages 6-12) lea
 
 ---
 
-## � New in v1.1: Multi-user, Secure Progress & Visual History
+## 🆕 New in v1.1: Multi-user, Secure Progress & Visual History
 
-- 👤 **User Registration & Login** - Each child can create a personal account with a simple password
-- � **Password Protection** - Only the correct password allows access to a user's progress
-- 📈 **Score History Panel** - See your last 10 scores and dates for every session
-- ✨ **Sparkline Visualization** - Mini-graph shows your score evolution over time (compatible with desktop and mobile)
-- 🏅 **Personal Best Tracking** - Each user sees their own best score and session count
-- 🧑‍🎓 **Kid & Parent Friendly** - Clear messages, accessible buttons, and feedback for all ages
-- 🌍 **Full Accessibility** - All features work on desktop, tablet, and mobile
+- 👤 **User Registration & Login** – Each child can create a personal account with a simple password
+- 🔐 **Password Protection** – Only the correct password allows access to a user's progress
+- 📈 **Score History Panel** – See your last 10 scores and session dates
+- ✨ **Sparkline Visualization** – Mini graph showing recent score evolution (desktop & mobile)
+- 🏅 **Personal Best Tracking** – Shows personal best vs current session performance
+- 🧑‍🎓 **Kid & Parent Friendly** – Clear messages, accessible interface and feedback
+- 🌍 **Fully Responsive & Accessible** – Works across desktop, tablet and mobile
 
 ---
 
@@ -248,8 +248,8 @@ If you find this helpful, please:
 
 ## 🌟 Version
 
-**Current Version**: 1.0.1 (Mobile UX Optimization)  
-**Release Date**: October 5, 2025
+**Current Version**: 1.1.0 (Multi-user & Cloud Sync)  
+**Release Date**: October 8, 2025
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 

@@ -1,4 +1,4 @@
-## [1.1.0] - 2025-10-07
+## [1.1.0] - 2025-10-08
 
 ### 🆕 Multi-user, Secure Progress & Visual History
 
