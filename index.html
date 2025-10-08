@@ -834,9 +834,9 @@
             </div>
             
             <div id="user-stats" style="margin-top: 0.5em; padding: 0.8em; background: rgba(255,255,255,0.25); border-radius: 8px; font-size: 0.95em; display: none; border: 1px solid rgba(255,255,255,0.3);">
-              <div style="color: #1a202c; margin-bottom: 0.3em;">🎮 <strong>Partidas jugadas:</strong> <span id="user-sessions">0</span></div>
-              <div style="color: #1a202c; margin-bottom: 0.3em;">🏆 <strong>Mejor score:</strong> <span id="user-best">--</span></div>
-              <div style="color: #1a202c;">📅 <strong>Última vez:</strong> <span id="user-last-played">Nunca</span></div>
+              <div style="color: #1a202c; margin-bottom: 0.3em;">🎮 <strong>Sessions played:</strong> <span id="user-sessions">0</span></div>
+              <div style="color: #1a202c; margin-bottom: 0.3em;">🏆 <strong>All-time best score:</strong> <span id="user-best">--</span></div>
+              <div style="color: #1a202c;">📅 <strong>Last session:</strong> <span id="user-last-played">Never</span></div>
             </div>
             <div id="user-history-panel" style="margin-top: 0.5em; padding: 0.8em; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 0.9em; display: none; max-height: 180px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.25);">
               <ul id="user-history-list" style="list-style: none; padding-left: 0; margin: 0;">
@@ -852,12 +852,12 @@
         </a>
         <span id="feedback"></span>
       </div>      <div id="stats">
-  <span id="cronometro">⏱️ Tiempo total: 00:00</span>
-  <span id="ultimo-tiempo">⚡ Último reto: -- s</span>
-  <span id="promedio-tiempo">📊 Promedio: -- s</span>
-  <span id="porcentaje-correctas">✅ Últimos 10: -- % correctas</span>
+  <span id="cronometro">⏱️ Session time: 00:00</span>
+  <span id="ultimo-tiempo">⚡ Last trial: -- s</span>
+  <span id="promedio-tiempo">📊 Avg (last 10): -- s</span>
+  <span id="porcentaje-correctas">✅ Accuracy (last 10): -- %</span>
   <span id="score">🎯 Score: --</span>
-  <span id="highscore">🏆 Mejor Score: --</span>
+  <span id="highscore">🏆 Session best: --</span>
       </div>
     </div>
     
@@ -1099,11 +1099,11 @@
         new Date(user.lastPlayed).toLocaleDateString() : 'Never';
       document.getElementById('user-stats').style.display = 'block';
 
-      // Mostrar solo el sparkline, sin la lista de scores
+      // Show only the sparkline, without the scores list
       const historyPanel = document.getElementById('user-history-panel');
       const historyList = document.getElementById('user-history-list');
       
-      // Ocultar la lista de scores
+      // Hide the scores list
       historyList.style.display = 'none';
       
       if (user.sessions && user.sessions.length > 0) {
@@ -1204,7 +1204,7 @@
             usersDatabase[username] = currentUser;
             showUserStats(username);
             jugador = username;
-            // Mostrar historial y mejor score al iniciar sesión
+            // Show session history and all-time best score on login
             document.getElementById('user-history-panel').style.display = 'block';
             document.getElementById('user-stats').style.display = 'block';
           } else {
@@ -1244,10 +1244,10 @@
           // Show warning that user exists
           nameInput.style.borderColor = '#ff6b6b';
           nameInput.style.backgroundColor = 'rgba(255, 107, 107, 0.1)';
-          nameInput.title = 'Este jugador ya existe. Elige "Seleccionar jugador existente" para continuar.';
+          nameInput.title = 'This player already exists. Choose "Select existing player" to continue.';
           passwordSection.style.display = 'none';
-          // Mensaje visual para niños
-          nameInput.setCustomValidity('Este nombre ya está registrado. Usa otro o selecciona el jugador existente.');
+          // Visual message for children
+          nameInput.setCustomValidity('This name is already registered. Use another one or select the existing player.');
           nameInput.reportValidity();
           jugador = "";
           currentUser = null;
@@ -1258,21 +1258,21 @@
           nameInput.setCustomValidity('');
           passwordSection.style.display = 'block';
           const passwordInput = document.getElementById('user-password');
-          passwordInput.placeholder = 'Crea una contraseña sencilla (mínimo 2 caracteres)...';
+          passwordInput.placeholder = 'Create a simple password (minimum 2 characters)...';
           clearPasswordField();
 
-          // Mensaje visual para niños
+          // Visual message for children
           if (username.length < 2) {
-            nameInput.setCustomValidity('El nombre debe tener al menos 2 letras.');
+            nameInput.setCustomValidity('Name must be at least 2 letters.');
             nameInput.reportValidity();
             jugador = "";
           } else {
             nameInput.setCustomValidity('');
             jugador = username;
           }
-      // Mensaje accesible si no hay sesiones
+      // Accessible message if no sessions exist
       if (user.sessions && user.sessions.length === 0) {
-        historyList.innerHTML = '<li style="color:#aaa;font-size:0.95em;">¡Juega una partida para ver tu progreso aquí!</li>';
+        historyList.innerHTML = '<li style="color:#aaa;font-size:0.95em;">Play a session to see your progress here!</li>';
       }
         }
         currentUser = null; // Will be created when game starts
@@ -1342,13 +1342,13 @@
     // ============= END USER REGISTRATION SYSTEM =============
     
     let filaActual = null, colActual = null, esperando = false;
-    let timeoutReto = null;
+    let timeoutTrial = null;  // Timeout for next trial
     let tiempoInicio = null;
-    let tiempos = [];
-    let resultados = [];
+    let trialTimes = [];  // Array of response times for last 10 trials
+    let trialResults = [];  // Array of correct/incorrect for last 10 trials
     let juegoIniciado = false;
 
-    // Matriz de errores: erroresPorCelda[i][j] = cantidad de errores en celda (i+1, j+1)
+    // Error matrix: erroresPorCelda[i][j] = error count for cell (i+1, j+1)
     let erroresPorCelda = Array.from({length:12}, () => Array(12).fill(0));
     let highScore = null;
     let jugador = "";
@@ -1397,7 +1397,7 @@
     }
 
     function ocultarCruz() {
-      // Quita cualquier highlight de fila/columna
+      // Remove any row/column highlight
       document.querySelectorAll('#matriz tr').forEach(tr => {
         tr.classList.remove('highlight-row', 'red', 'green');
       });
@@ -1435,11 +1435,11 @@
     }
 
     function actualizarStats(ultimoTiempo = null) {
-      // Solo últimos 10 intentos
-      const ultimosResultados = resultados.slice(-10);
-      const ultimosTiempos = tiempos.slice(-10);
+      // Only last 10 trials
+      const ultimosResultados = trialResults.slice(-10);
+      const ultimosTiempos = trialTimes.slice(-10);
 
-      // Promedio de tiempos últimos 10
+      // Average time for last 10 trials
       let prom = null;
       if (ultimosTiempos.length > 0) {
         const suma = ultimosTiempos.reduce((a, b) => a + b, 0);
@@ -1448,7 +1448,7 @@
       } else {
         document.getElementById('promedio-tiempo').textContent = `📊 Average: -- s`;
       }
-      // Último reto
+      // Last trial time
       if (ultimoTiempo !== null) {
         document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: ${ultimoTiempo.toFixed(2)} s`;
       } else if (ultimosTiempos.length > 0) {
@@ -1456,7 +1456,7 @@
       } else {
         document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: -- s`;
       }
-      // % correctas últimos 10
+      // Accuracy for last 10 trials
       let porcentaje = null;
       if (ultimosResultados.length > 0) {
         const correctas = ultimosResultados.filter(x => x).length;
@@ -1465,7 +1465,7 @@
       } else {
         document.getElementById('porcentaje-correctas').textContent = `✅ Last 10: -- % correct`;
       }
-      // Score
+      // Score calculation
       let scoreText = "🎯 Score: --";
       let score = null;
       if (porcentaje !== null && prom !== null && prom > 0) {
@@ -1474,9 +1474,9 @@
       }
       document.getElementById('score').textContent = scoreText;
 
-      // Higher Score solo si hay al menos 10 retos
+      // Current Session Higher Score - only if at least 10 trials completed
       const highscoreElem = document.getElementById('highscore');
-      if (resultados.length >= 10 && tiempos.length >= 10 && score !== null) {
+      if (trialResults.length >= 10 && trialTimes.length >= 10 && score !== null) {
         let highscorePrevio = highScore;
         if (highScore === null || score > highScore) {
           highScore = score;
@@ -1487,7 +1487,7 @@
               accuracy: porcentaje,
               averageTime: prom,
               totalTime: (Date.now() - tiempoInicioCronometro) / 1000,
-              challenges: resultados.length
+              challenges: trialResults.length
             };
             saveUserSession(jugador, score, sessionData);
             
@@ -1612,7 +1612,7 @@
         }
       }
       
-      nuevoReto();
+      newTrial();
     }
 
     async function detenerSesion() {
@@ -1622,9 +1622,9 @@
       juegoIniciado = false;
       detenerCronometro();
       
-      // Calculate final stats
-      const ultimosResultados = resultados.slice(-10);
-      const ultimosTiempos = tiempos.slice(-10);
+      // Calculate final stats from last 10 trials
+      const ultimosResultados = trialResults.slice(-10);
+      const ultimosTiempos = trialTimes.slice(-10);
       
       let porcentaje = null;
       let prom = null;
@@ -1641,7 +1641,7 @@
       
       // Calculate final score
       let finalScore = null;
-      if (porcentaje !== null && prom !== null && prom > 0 && resultados.length >= 10) {
+      if (porcentaje !== null && prom !== null && prom > 0 && trialResults.length >= 10) {
         finalScore = (porcentaje / prom) * 100;
         
         // Save session data
@@ -1650,7 +1650,7 @@
             accuracy: porcentaje,
             averageTime: prom,
             totalTime: (Date.now() - tiempoInicioCronometro) / 1000,
-            challenges: resultados.length
+            challenges: trialResults.length
           };
           await saveUserSession(jugador, finalScore, sessionData);
           
@@ -1658,9 +1658,9 @@
           showUserStats(jugador);
         }
         
-        alert(`🎮 Sesión finalizada!\n\n🎯 Score final: ${finalScore.toFixed(1)}\n⚡ Promedio: ${prom.toFixed(2)}s\n✅ Precisión: ${(porcentaje*100).toFixed(0)}%\n🔢 Retos completados: ${resultados.length}`);
+        alert(`🎮 Session ended!\n\n🎯 Final score: ${finalScore.toFixed(1)}\n⚡ Average: ${prom.toFixed(2)}s\n✅ Accuracy: ${(porcentaje*100).toFixed(0)}%\n🔢 Trials completed: ${trialResults.length}`);
       } else {
-        alert(`🎮 Sesión finalizada!\n\nCompleta al menos 10 retos para obtener un score.`);
+        alert(`🎮 Session ended!\n\nComplete at least 10 trials to get a score.`);
       }
       
       // Reset UI
@@ -1673,7 +1673,7 @@
     }
 
     function elegirCeldaPorErrores() {
-      // Calcula errores por fila y por columna
+      // Calculate errors by row and column
       let erroresFila = Array(12).fill(0);
       let erroresCol = Array(12).fill(0);
       for (let i = 0; i < 12; i++) {
@@ -1682,16 +1682,16 @@
           erroresCol[j] += erroresPorCelda[i][j];
         }
       }
-      // Construye un array de pesos multiplicativos (erroresFila[i]+1)*(erroresCol[j]+1)
+      // Build array of multiplicative weights (erroresFila[i]+1)*(erroresCol[j]+1)
       let pesos = [];
       for (let i = 0; i < 12; i++) {
         for (let j = 0; j < 12; j++) {
           pesos.push((erroresFila[i] + 1) * (erroresCol[j] + 1));
         }
       }
-      // Suma total de pesos
+      // Total sum of weights
       let total = pesos.reduce((a, b) => a + b, 0);
-      // Elige un número aleatorio entre 0 y total
+      // Choose random number between 0 and total
       let r = Math.random() * total;
       let acumulado = 0;
       for (let idx = 0; idx < pesos.length; idx++) {
@@ -1702,18 +1702,18 @@
           return [i + 1, j + 1];
         }
       }
-      // Fallback (no debería ocurrir)
+      // Fallback (shouldn't occur)
       return [Math.floor(Math.random() * 12) + 1, Math.floor(Math.random() * 12) + 1];
     }
 
-    // Variables para la secuencia de repetición especial
+    // Variables for special repetition sequence
     let repeticionActiva = false;
     let secuenciaRepeticion = [];
     let indiceSecuencia = 0;
     let celdaProblematica = null;
 
     function generarSecuenciaRepeticion(fila, col) {
-      // Genera 10 celdas aleatorias de filas/columnas <= 4, distintas entre sí y distintas de la celda problemática
+      // Generate 10 random cells from rows/cols <= 4, distinct from each other and from problematic cell
       let posibles = [];
       for (let i = 1; i <= 4; i++) {
         for (let j = 1; j <= 4; j++) {
@@ -1722,7 +1722,7 @@
           }
         }
       }
-      // Mezcla y toma 10 distintas
+      // Shuffle and take 10 distinct
       for (let i = posibles.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [posibles[i], posibles[j]] = [posibles[j], posibles[i]];
@@ -1864,11 +1864,11 @@
       
       let tiempoRespuesta = tiempoInicio ? (Date.now() - tiempoInicio) / 1000 : null;
       if (tiempoRespuesta !== null) {
-        tiempos.push(tiempoRespuesta);
-        if (tiempos.length > 10) tiempos.shift();
+        trialTimes.push(tiempoRespuesta);
+        if (trialTimes.length > 10) trialTimes.shift();
       }
 
-      // --- Nueva lógica de repetición ---
+      // --- New repetition logic ---
       let activarSecuencia = false;
       if (valor !== correcto || (tiempoRespuesta !== null && tiempoRespuesta > 6)) {
         activarSecuencia = true;
@@ -1883,11 +1883,11 @@
         document.getElementById('feedback').textContent = '🎉 Correct! Well done!';
         document.getElementById('mobile-feedback').textContent = '🎉 Correct! Well done!';
         resaltaCruz('green');
-        resultados.push(true);
-        if (resultados.length > 10) resultados.shift();
+        trialResults.push(true);
+        if (trialResults.length > 10) trialResults.shift();
         actualizarStats(tiempoRespuesta);
         esperando = false;
-        timeoutReto = setTimeout(nuevoReto, 1000);
+        timeoutTrial = setTimeout(newTrial, 1000);
       } else {
         if (celda) {
           celda.innerHTML = valor || '';
@@ -1897,40 +1897,40 @@
         document.getElementById('feedback').textContent = '';
         document.getElementById('mobile-feedback').textContent = `❌ Incorrect, it was ${correcto}`;
         resaltaCruz('red');
-        resultados.push(false);
-        if (resultados.length > 10) resultados.shift();
+        trialResults.push(false);
+        if (trialResults.length > 10) trialResults.shift();
         erroresPorCelda[filaActual-1][colActual-1]++;
         actualizarStats(tiempoRespuesta);
         esperando = false;
         mostrarModalIncorrecto(`Incorrect, it was ${correcto}`);
-        timeoutReto = setTimeout(nuevoReto, 2000);
+        timeoutTrial = setTimeout(newTrial, 2000);
       }
 
-      // Si corresponde, activa la secuencia de repetición (esto sobreescribe cualquier secuencia previa)
+      // If applicable, activate repetition sequence (this overwrites any previous sequence)
       if (activarSecuencia) {
         activarRepeticion(filaActual, colActual);
       }
     }
 
-    function nuevoReto() {
+    function newTrial() {
       if (!juegoIniciado) {
         limpiarMatriz();
         ocultarCruz();
         updateMobileChallenge();
         return;
       }
-      if (timeoutReto) {
-        clearTimeout(timeoutReto);
-        timeoutReto = null;
+      if (timeoutTrial) {
+        clearTimeout(timeoutTrial);
+        timeoutTrial = null;
       }
       limpiarMatriz();
 
-      // Selección de celda según regla de repetición o normal
+      // Cell selection based on repetition rule or normal
       let celda;
       if (repeticionActiva) {
         celda = siguienteCeldaRepeticion();
         if (!celda) {
-          // Termina la secuencia especial, vuelve a la regla normal
+          // End special sequence, return to normal rule
           [filaActual, colActual] = elegirCeldaPorErrores();
         } else {
           [filaActual, colActual] = celda;
@@ -1943,11 +1943,11 @@
       // Update mobile challenge display
       updateMobileChallenge();
 
-      // Resalta fila
+      // Highlight row
       document.querySelectorAll('#matriz tbody tr').forEach((tr, idx) => {
         if (idx === filaActual - 1) tr.classList.add('highlight-row');
       });
-      // Resalta columna (todas las celdas de la columna)
+      // Highlight column (all cells in the column)
       document.querySelectorAll('#matriz thead th').forEach((th, idx) => {
         if (idx === colActual) th.classList.add('highlight-col');
       });
@@ -2012,18 +2012,18 @@
 
     function reiniciarJuego() {
       detenerCronometro();
-      // Reinicia todas las variables de estado
+      // Reset all state variables
       filaActual = null;
       colActual = null;
       esperando = false;
-      timeoutReto = null;
+      timeoutTrial = null;
       tiempoInicio = null;
-      tiempos = [];
-      resultados = [];
+      trialTimes = [];
+      trialResults = [];
       juegoIniciado = false;
       erroresPorCelda = Array.from({length:12}, () => Array(12).fill(0));
       highScore = null;
-      // Limpia la interfaz
+      // Clear the interface
       document.getElementById('start-btn').style.display = '';
       document.getElementById('stop-btn').style.display = 'none';
       document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
