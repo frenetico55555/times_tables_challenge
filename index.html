@@ -228,15 +228,6 @@
       box-shadow: 0 8px 25px rgba(56, 239, 125, 0.5);
     }
     
-    #reset-btn {
-      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-      color: white;
-    }
-    
-    #reset-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(250, 112, 154, 0.4);
-    }
     
     
     a button {
@@ -828,7 +819,6 @@
           </div>
         </div>
     <button id="start-btn" onclick="iniciarJuego()">🚀 Start Game!</button>
-  <button id="reset-btn" onclick="reiniciarJuego()" aria-label="Reiniciar cronómetro" title="Reinicia el tiempo del juego">🔄 Reiniciar Tiempo</button>
         <!-- Removed Send Suggestions button -->
         <span id="feedback"></span>
       </div>
@@ -1910,36 +1900,6 @@
       }, 1200);
     }
 
-    function reiniciarJuego() {
-      detenerCronometro();
-      // Reinicia todas las variables de estado
-      filaActual = null;
-      colActual = null;
-      esperando = false;
-      timeoutReto = null;
-      tiempoInicio = null;
-      tiempos = [];
-      resultados = [];
-      juegoIniciado = false;
-      erroresPorCelda = Array.from({length:12}, () => Array(12).fill(0));
-      highScore = null;
-      // Limpia la interfaz
-      document.getElementById('start-btn').style.display = '';
-      document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
-      document.getElementById('ultimo-tiempo').textContent = "⚡ Last challenge: -- s";
-      document.getElementById('feedback').textContent = "";
-      document.getElementById('score').textContent = "🎯 Score: --";
-      document.getElementById('highscore').textContent = "🏆 Higher Score: --";
-      document.getElementById('promedio-tiempo').textContent = "📊 Average: -- s";
-      document.getElementById('porcentaje-correctas').textContent = "✅ Last 10: -- % correct";
-      limpiarMatriz();
-      ocultarCruz();
-      updateMobileChallenge();
-      
-      // Remove mobile game active class
-      document.body.classList.remove('mobile-game-active');
-    }
-
     // Al cargar, oculta la cruz y muestra el botón de inicio
     window.onload = function() {
       actualizarStats();
@@ -1950,8 +1910,6 @@
       detenerCronometro();
       document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
       document.getElementById('ultimo-tiempo').textContent = "⚡ Last challenge: -- s";
-      // Make sure the reset button is visible on load
-      document.getElementById('reset-btn').style.display = '';
       
       // Initialize mobile challenge display
       updateMobileChallenge();
