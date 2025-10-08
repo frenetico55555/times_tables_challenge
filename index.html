@@ -415,8 +415,9 @@
       padding-right: 4px;
       flex-wrap: wrap;
     }
-    #highscore-floating #score,
-    #highscore-floating #highscore {
+  #highscore-floating #score,
+  #highscore-floating #session-highscore,
+  #highscore-floating #highscore {
       background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%) !important;
       box-shadow: 0 4px 12px rgba(0,0,0,0.25);
       border-radius: 14px;
@@ -897,7 +898,7 @@
       </script>
     </tbody>
   </table>
-  <div id="highscore-floating"><span id="score">🎯 Last 10 trials score</span><span id="highscore">🏆 All sessions higher score</span></div>
+  <div id="highscore-floating"><span id="score">🎯 Last 10 trials score</span><span id="session-highscore">🏆 Current session highest score</span><span id="highscore">🏆 All sessions higher score</span></div>
     </div>
   </div>
   <!-- Firebase Configuration -->
@@ -1450,7 +1451,8 @@
         score = (porcentaje / prom) * 100;
   scoreText = `🎯 Last 10 trials score: ${score.toFixed(1)}`;
       }
-      document.getElementById('score').textContent = scoreText;
+  document.getElementById('score').textContent = scoreText;
+  const sessionHighElem = document.getElementById('session-highscore');
 
       // Higher Score solo si hay al menos 10 retos
       const highscoreElem = document.getElementById('highscore');
@@ -1485,15 +1487,21 @@
         }
         
         // Show personal best vs session best
-        if (currentUser && currentUser.personalBest && currentUser.personalBest !== highScore) {
-          highscoreElem.textContent = `🏆 Current session highest score: ${highScore.toFixed(1)} | All sessions highest score: ${currentUser.personalBest.toFixed(1)}`;
+        if (sessionHighElem) {
+          sessionHighElem.textContent = `🏆 Current session highest score: ${highScore.toFixed(1)}`;
+        }
+        if (currentUser && currentUser.personalBest) {
+          highscoreElem.textContent = `🏆 All sessions higher score: ${currentUser.personalBest.toFixed(1)}`;
         } else {
           highscoreElem.textContent = `🏆 All sessions higher score: ${highScore.toFixed(1)}`;
         }
       } else {
         highScore = null;
+        if (sessionHighElem) {
+          sessionHighElem.textContent = "🏆 Current session highest score";
+        }
         if (currentUser && currentUser.personalBest) {
-          highscoreElem.textContent = `🏆 Personal Best: ${currentUser.personalBest.toFixed(1)}`;
+          highscoreElem.textContent = `🏆 All sessions higher score: ${currentUser.personalBest.toFixed(1)}`;
         } else {
           highscoreElem.textContent = "🏆 All sessions higher score";
         }
