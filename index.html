@@ -905,7 +905,7 @@
   <script type="module">
     // Import the functions you need from the SDKs you need
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-    import { getFirestore, collection, doc, getDoc, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+    import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
 
     // Your web app's Firebase configuration
     const firebaseConfig = {
@@ -924,7 +924,7 @@
     
     // Make Firebase available globally
     window.db = db;
-    window.firestore = { getDoc, setDoc, updateDoc, doc, collection };
+    window.firestore = { getDoc, setDoc, updateDoc, doc, collection, getDocs };
   </script>
   
   <script>
@@ -934,14 +934,30 @@
     let currentUser = null;
     let usersDatabase = {};
     
-    // Load users from Firebase
+    // Load all users from Firebase
     async function loadUsersDatabase() {
       try {
+        // First load from localStorage for immediate access
+        const stored = localStorage.getItem('multiplicationGameUsers');
+        if (stored) {
+          usersDatabase = JSON.parse(stored);
+        }
+        
+        // Then sync with Firebase to get all users
         const usersRef = window.firestore.collection(window.db, 'users');
-        // For now, we'll load users as needed when they try to login
-        console.log('Firebase ready for user operations');
+        const querySnapshot = await window.firestore.getDocs(usersRef);
+        
+        querySnapshot.forEach((doc) => {
+          const userData = doc.data();
+          usersDatabase[doc.id] = userData;
+        });
+        
+        // Save merged data back to localStorage
+        localStorage.setItem('multiplicationGameUsers', JSON.stringify(usersDatabase));
+        
+        console.log('Loaded', Object.keys(usersDatabase).length, 'users from Firebase');
       } catch (error) {
-        console.error('Error connecting to Firebase:', error);
+        console.error('Error loading users from Firebase:', error);
         // Fallback to localStorage if Firebase fails
         try {
           const stored = localStorage.getItem('multiplicationGameUsers');
