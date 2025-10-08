@@ -1324,10 +1324,6 @@
             nameInput.setCustomValidity('');
             jugador = username;
           }
-      // Accessible message if no sessions exist
-      if (user.sessions && user.sessions.length === 0) {
-        historyList.innerHTML = '<li style="color:#aaa;font-size:0.95em;">Play a session to see your progress here!</li>';
-      }
         }
         currentUser = null; // Will be created when game starts
       } else {
