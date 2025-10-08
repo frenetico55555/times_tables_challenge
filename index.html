@@ -825,19 +825,19 @@
             <input type="text" id="nombre-jugador" style="font-size:1.1em; width: 100%; margin-bottom: 0.5em;" placeholder="Enter new player name..." autocomplete="off">
             
             <div id="password-section" style="display: none;">
-              <label for="user-password" style="font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 0.3em;">🔐 Simple Password:</label>
+              <label for="user-password" style="font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 0.3em; color: #2d3748;">🔐 Simple Password:</label>
               <input type="password" id="user-password" style="font-size:1.1em; width: 100%; margin-bottom: 0.3em;" placeholder="Enter your simple password..." autocomplete="off">
-              <div style="font-size: 0.8em; color: rgba(255,255,255,0.8); margin-bottom: 0.5em;">
+              <div style="font-size: 0.8em; color: #4a5568; margin-bottom: 0.5em;">
                 💡 <em>Use something simple like your age, favorite number, or pet's name</em>
               </div>
             </div>
             
-            <div id="user-stats" style="margin-top: 0.5em; padding: 0.5em; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.9em; display: none;">
-              <div>🎮 <strong>Partidas jugadas:</strong> <span id="user-sessions">0</span></div>
-              <div>🏆 <strong>Mejor score:</strong> <span id="user-best">--</span></div>
-              <div>📅 <strong>Última vez:</strong> <span id="user-last-played">Nunca</span></div>
+            <div id="user-stats" style="margin-top: 0.5em; padding: 0.8em; background: rgba(255,255,255,0.25); border-radius: 8px; font-size: 0.95em; display: none; border: 1px solid rgba(255,255,255,0.3);">
+              <div style="color: #1a202c; margin-bottom: 0.3em;">🎮 <strong>Partidas jugadas:</strong> <span id="user-sessions">0</span></div>
+              <div style="color: #1a202c; margin-bottom: 0.3em;">🏆 <strong>Mejor score:</strong> <span id="user-best">--</span></div>
+              <div style="color: #1a202c;">📅 <strong>Última vez:</strong> <span id="user-last-played">Nunca</span></div>
             </div>
-            <div id="user-history-panel" style="margin-top: 0.5em; padding: 0.5em; background: rgba(255,255,255,0.08); border-radius: 8px; font-size: 0.9em; display: none; max-height: 180px; overflow-y: auto;">
+            <div id="user-history-panel" style="margin-top: 0.5em; padding: 0.8em; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 0.9em; display: none; max-height: 180px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.25);">
               <ul id="user-history-list" style="list-style: none; padding-left: 0; margin: 0;">
                 <!-- Score history will be populated here -->
               </ul>
