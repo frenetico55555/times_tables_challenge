@@ -1373,14 +1373,14 @@
 
     function actualizarCronometro() {
       if (!tiempoInicioCronometro) {
-        document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
+        document.getElementById('cronometro').textContent = "⏱️ Session time: 00:00";
         return;
       }
       let ahora = Date.now();
       let diff = Math.floor((ahora - tiempoInicioCronometro) / 1000);
       let min = Math.floor(diff / 60);
       let seg = diff % 60;
-      document.getElementById('cronometro').textContent = `⏱️ Total time: ${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
+      document.getElementById('cronometro').textContent = `⏱️ Session time: ${min.toString().padStart(2, '0')}:${seg.toString().padStart(2, '0')}`;
     }
 
     function limpiarMatriz() {
@@ -1444,26 +1444,26 @@
       if (ultimosTiempos.length > 0) {
         const suma = ultimosTiempos.reduce((a, b) => a + b, 0);
         prom = suma / ultimosTiempos.length;
-        document.getElementById('promedio-tiempo').textContent = `📊 Average: ${prom.toFixed(2)} s`;
+        document.getElementById('promedio-tiempo').textContent = `📊 Avg (last 10): ${prom.toFixed(2)} s`;
       } else {
-        document.getElementById('promedio-tiempo').textContent = `📊 Average: -- s`;
+        document.getElementById('promedio-tiempo').textContent = `📊 Avg (last 10): -- s`;
       }
       // Last trial time
       if (ultimoTiempo !== null) {
-        document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: ${ultimoTiempo.toFixed(2)} s`;
+        document.getElementById('ultimo-tiempo').textContent = `⚡ Last trial: ${ultimoTiempo.toFixed(2)} s`;
       } else if (ultimosTiempos.length > 0) {
-        document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: ${ultimosTiempos[ultimosTiempos.length-1].toFixed(2)} s`;
+        document.getElementById('ultimo-tiempo').textContent = `⚡ Last trial: ${ultimosTiempos[ultimosTiempos.length-1].toFixed(2)} s`;
       } else {
-        document.getElementById('ultimo-tiempo').textContent = `⚡ Last challenge: -- s`;
+        document.getElementById('ultimo-tiempo').textContent = `⚡ Last trial: -- s`;
       }
       // Accuracy for last 10 trials
       let porcentaje = null;
       if (ultimosResultados.length > 0) {
         const correctas = ultimosResultados.filter(x => x).length;
         porcentaje = correctas / ultimosResultados.length;
-        document.getElementById('porcentaje-correctas').textContent = `✅ Last 10: ${(porcentaje*100).toFixed(0)}% correct`;
+        document.getElementById('porcentaje-correctas').textContent = `✅ Accuracy (last 10): ${(porcentaje*100).toFixed(0)}%`;
       } else {
-        document.getElementById('porcentaje-correctas').textContent = `✅ Last 10: -- % correct`;
+        document.getElementById('porcentaje-correctas').textContent = `✅ Accuracy (last 10): --%`;
       }
       // Score calculation
       let scoreText = "🎯 Score: --";
@@ -2026,13 +2026,13 @@
       // Clear the interface
       document.getElementById('start-btn').style.display = '';
       document.getElementById('stop-btn').style.display = 'none';
-      document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
-      document.getElementById('ultimo-tiempo').textContent = "⚡ Last challenge: -- s";
+      document.getElementById('cronometro').textContent = "⏱️ Session time: 00:00";
+      document.getElementById('ultimo-tiempo').textContent = "⚡ Last trial: -- s";
       document.getElementById('feedback').textContent = "";
       document.getElementById('score').textContent = "🎯 Score: --";
-      document.getElementById('highscore').textContent = "🏆 Higher Score: --";
-      document.getElementById('promedio-tiempo').textContent = "📊 Average: -- s";
-      document.getElementById('porcentaje-correctas').textContent = "✅ Last 10: -- % correct";
+      document.getElementById('highscore').textContent = "🏆 Session best: --";
+      document.getElementById('promedio-tiempo').textContent = "📊 Avg (last 10): -- s";
+      document.getElementById('porcentaje-correctas').textContent = "✅ Accuracy (last 10): --%";
       limpiarMatriz();
       ocultarCruz();
       updateMobileChallenge();
@@ -2049,8 +2049,8 @@
       limpiarMatriz();
       ocultarCruz();
       detenerCronometro();
-      document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
-      document.getElementById('ultimo-tiempo').textContent = "⚡ Last challenge: -- s";
+      document.getElementById('cronometro').textContent = "⏱️ Session time: 00:00";
+      document.getElementById('ultimo-tiempo').textContent = "⚡ Last trial: -- s";
       // Make sure the reset button is visible on load
       document.getElementById('reset-btn').style.display = '';
       
