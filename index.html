@@ -813,14 +813,13 @@
           <div id="user-selector" style="margin-top: 0.5em;">
             <div style="display: flex; gap: 0.5em; margin-bottom: 0.5em;">
               <input type="radio" id="existing-user" name="user-type" value="existing" style="margin-right: 0.3em;">
-              <label for="existing-user" style="font-weight: normal;">Select existing player</label>
+              <label for="existing-user" style="font-weight: normal;">I'm registered</label>
               <input type="radio" id="new-user" name="user-type" value="new" checked style="margin-left: 1em; margin-right: 0.3em;">
               <label for="new-user" style="font-weight: normal;">New player</label>
             </div>
             
-            <select id="existing-users" style="font-size:1.1em; width: 100%; margin-bottom: 0.5em; display: none;">
-              <option value="">-- Select a player --</option>
-            </select>
+            <!-- Replaced dropdown with manual username input for existing users -->
+            <input type="text" id="existing-username" style="font-size:1.1em; width: 100%; margin-bottom: 0.5em; display:none;" placeholder="Enter your username..." autocomplete="off" />
             
             <input type="text" id="nombre-jugador" style="font-size:1.1em; width: 100%; margin-bottom: 0.5em;" placeholder="Enter new player name..." autocomplete="off">
             
@@ -1061,43 +1060,7 @@
     }
     
     // Update user dropdown with registered users
-    async function updateUserDropdown() {
-      const dropdown = document.getElementById('existing-users');
-      dropdown.innerHTML = '<option value="">-- Select a player --</option>';
-      
-      // Try to get users from Firebase first
-      try {
-        const usersRef = window.firestore.collection(window.db, 'users');
-        // For now, we'll use the local database and load users as needed
-        // In a full implementation, you might want to get all user names
-        
-        const users = Object.keys(usersDatabase).sort();
-        users.forEach(username => {
-          const user = usersDatabase[username];
-          const option = document.createElement('option');
-          option.value = username;
-          option.textContent = username;
-          if (user.personalBest) {
-            option.textContent += ` (Best: ${user.personalBest.toFixed(1)})`;
-          }
-          dropdown.appendChild(option);
-        });
-      } catch (error) {
-        console.error('Error updating user dropdown:', error);
-        // Fallback to localStorage data
-        const users = Object.keys(usersDatabase).sort();
-        users.forEach(username => {
-          const user = usersDatabase[username];
-          const option = document.createElement('option');
-          option.value = username;
-          option.textContent = username;
-          if (user.personalBest) {
-            option.textContent += ` (Best: ${user.personalBest.toFixed(1)})`;
-          }
-          dropdown.appendChild(option);
-        });
-      }
-    }
+    async function updateUserDropdown() { /* No longer needed (manual input) */ }
     
     // Show user statistics
     function showUserStats(username) {
@@ -1137,27 +1100,28 @@
     // Handle user type selection
     function handleUserTypeChange() {
       const existingRadio = document.getElementById('existing-user');
-      const newRadio = document.getElementById('new-user');
-      const dropdown = document.getElementById('existing-users');
       const nameInput = document.getElementById('nombre-jugador');
+      const existingUsernameInput = document.getElementById('existing-username');
       const passwordSection = document.getElementById('password-section');
       
       if (existingRadio.checked) {
-        dropdown.style.display = 'block';
+        existingUsernameInput.style.display = 'block';
         nameInput.style.display = 'none';
         passwordSection.style.display = 'none';
         nameInput.value = '';
         clearPasswordField();
         hideUserStats();
         currentUser = null;
+        jugador = "";
       } else {
-        dropdown.style.display = 'none';
+        existingUsernameInput.style.display = 'none';
         nameInput.style.display = 'block';
-        passwordSection.style.display = 'none'; // Will show when name is entered
-        dropdown.value = '';
+        passwordSection.style.display = 'none';
+        existingUsernameInput.value = '';
         clearPasswordField();
         hideUserStats();
         currentUser = null;
+        jugador = "";
       }
     }
     
@@ -1171,19 +1135,18 @@
     
     // Handle existing user selection
     async function handleExistingUserSelection() {
-      const dropdown = document.getElementById('existing-users');
-      const username = dropdown.value;
+      const existingUsernameInput = document.getElementById('existing-username');
+      const username = existingUsernameInput.value.trim();
       const passwordSection = document.getElementById('password-section');
       
       if (username) {
-        // Load user from Firebase if not in local database
+        // Load user from Firebase if not in local cache
         if (!usersDatabase[username]) {
           const user = await getUserFromFirebase(username);
           if (user) {
             usersDatabase[username] = user;
           }
         }
-        
         passwordSection.style.display = 'block';
         const passwordInput = document.getElementById('user-password');
         passwordInput.placeholder = 'Enter your password to continue...';
@@ -1201,7 +1164,7 @@
     
     // Handle password input for existing users
     async function handlePasswordInput() {
-      const dropdown = document.getElementById('existing-users');
+      const existingUsernameInput = document.getElementById('existing-username');
       const nameInput = document.getElementById('nombre-jugador');
       const passwordInput = document.getElementById('user-password');
       const existingRadio = document.getElementById('existing-user');
@@ -1210,26 +1173,25 @@
       
       if (existingRadio.checked) {
         // Existing user password verification
-        const username = dropdown.value;
+        const username = existingUsernameInput.value.trim();
         if (username && password) {
           const isValid = await verifyUserPassword(username, password);
-          if (isValid) {
-            passwordInput.style.borderColor = '#55efc4';
-            passwordInput.style.backgroundColor = 'rgba(85, 239, 196, 0.1)';
-            currentUser = await getUserFromFirebase(username);
-            usersDatabase[username] = currentUser;
-            showUserStats(username);
-            jugador = username;
-            // Mostrar historial y mejor score al iniciar sesión
-            document.getElementById('user-history-panel').style.display = 'block';
-            document.getElementById('user-stats').style.display = 'block';
-          } else {
-            passwordInput.style.borderColor = '#ff6b6b';
-            passwordInput.style.backgroundColor = 'rgba(255, 107, 107, 0.1)';
-            currentUser = null;
-            hideUserStats();
-            jugador = "";
-          }
+            if (isValid) {
+              passwordInput.style.borderColor = '#55efc4';
+              passwordInput.style.backgroundColor = 'rgba(85, 239, 196, 0.1)';
+              currentUser = await getUserFromFirebase(username);
+              usersDatabase[username] = currentUser;
+              showUserStats(username);
+              jugador = username;
+              document.getElementById('user-history-panel').style.display = 'block';
+              document.getElementById('user-stats').style.display = 'block';
+            } else {
+              passwordInput.style.borderColor = '#ff6b6b';
+              passwordInput.style.backgroundColor = 'rgba(255, 107, 107, 0.1)';
+              currentUser = null;
+              hideUserStats();
+              jugador = "";
+            }
         }
       } else {
         // New user password creation
@@ -1347,7 +1309,7 @@
       // Event listeners
       document.getElementById('existing-user').addEventListener('change', handleUserTypeChange);
       document.getElementById('new-user').addEventListener('change', handleUserTypeChange);
-      document.getElementById('existing-users').addEventListener('change', handleExistingUserSelection);
+  document.getElementById('existing-username').addEventListener('input', handleExistingUserSelection);
       document.getElementById('nombre-jugador').addEventListener('input', handleNewUserInput);
       document.getElementById('user-password').addEventListener('input', handlePasswordInput);
       
