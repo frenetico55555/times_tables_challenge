@@ -310,6 +310,43 @@
       min-width: 0;
     }
     
+    #score-container {
+      display: flex;
+      gap: 20px;
+      margin-top: 15px;
+      justify-content: center;
+      width: 100%;
+      max-width: 800px;
+    }
+    
+    #score-container span {
+      background: white;
+      padding: 12px 24px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      color: #555;
+      text-align: center;
+      font-size: clamp(0.95em, 1.1vw, 1.1em);
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 600;
+      flex: 1;
+      min-width: 150px;
+    }
+    
+    #score-container span:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    #score-container #score {
+      background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+    }
+    
+    #score-container #highscore {
+      background: linear-gradient(135deg, #fff9e6 0%, #ffe8b3 100%);
+    }
+    
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
@@ -581,6 +618,14 @@
         flex: 1 1 calc(50% - 5px);
         min-width: 140px;
       }
+      
+      #score-container {
+        margin-top: 20px;
+      }
+      
+      #score-container span {
+        font-size: clamp(0.9em, 1.3vw, 1em);
+      }
     }
     
     /* Mobile Challenge Display */
@@ -709,6 +754,11 @@
       
       /* Hide the full table on mobile */
       table { 
+        display: none;
+      }
+      
+      /* Hide score container on mobile when game is active */
+      #score-container {
         display: none;
       }
       
@@ -856,8 +906,6 @@
   <span id="ultimo-tiempo">⚡ Last trial: -- s</span>
   <span id="promedio-tiempo">📊 Avg (last 10): -- s</span>
   <span id="porcentaje-correctas">✅ Accuracy (last 10): -- %</span>
-  <span id="score">🎯 Score: --</span>
-  <span id="highscore">🏆 Session best: --</span>
       </div>
     </div>
     
@@ -896,6 +944,12 @@
       </script>
     </tbody>
   </table>
+  
+  <!-- Score displays below matrix -->
+  <div id="score-container">
+    <span id="score">🎯 Score: --</span>
+    <span id="highscore">🏆 Session best: --</span>
+  </div>
     </div>
   </div>
   <!-- Firebase Configuration -->
