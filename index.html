@@ -846,15 +846,14 @@
           </div>
         </div>
         <button id="start-btn" onclick="iniciarJuego()">🚀 Start Game!</button>
-  <button id="reset-btn" onclick="reiniciarJuego()" aria-label="Reiniciar cronómetro" title="Reinicia el tiempo del juego">🔄 Reiniciar Tiempo</button>
-  <button id="screenshot-btn" aria-label="Tomar captura" title="Guarda una imagen del progreso">📸 Captura de Pantalla</button>
+        <button id="stop-btn" onclick="detenerSesion()" style="display: none; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">⏹️ Stop Game Session</button>
+        <button id="reset-btn" onclick="reiniciarJuego()" aria-label="Reiniciar cronómetro" title="Reinicia el tiempo del juego">🔄 Reiniciar Tiempo</button>
+        <button id="screenshot-btn" aria-label="Tomar captura" title="Guarda una imagen del progreso">📸 Captura de Pantalla</button>
         <a href="https://forms.gle/AvHgLfGM7LdmSfbt6" target="_blank" rel="noopener" style="text-decoration:none;">
           <button type="button">💡 Send Suggestions</button>
         </a>
         <span id="feedback"></span>
-      </div>
-      
-      <div id="stats">
+      </div>      <div id="stats">
   <span id="cronometro">⏱️ Tiempo total: 00:00</span>
   <span id="ultimo-tiempo">⚡ Último reto: -- s</span>
   <span id="promedio-tiempo">📊 Promedio: -- s</span>
@@ -1607,6 +1606,7 @@
       
       // Start the game
       document.getElementById('start-btn').style.display = 'none';
+      document.getElementById('stop-btn').style.display = 'inline-block';
       juegoIniciado = true;
       iniciarCronometro();
       
@@ -1628,6 +1628,63 @@
       }
       
       nuevoReto();
+    }
+
+    async function detenerSesion() {
+      if (!juegoIniciado) return;
+      
+      // Stop the game
+      juegoIniciado = false;
+      detenerCronometro();
+      
+      // Calculate final stats
+      const ultimosResultados = resultados.slice(-10);
+      const ultimosTiempos = tiempos.slice(-10);
+      
+      let porcentaje = null;
+      let prom = null;
+      
+      if (ultimosResultados.length > 0) {
+        const correctas = ultimosResultados.filter(x => x).length;
+        porcentaje = correctas / ultimosResultados.length;
+      }
+      
+      if (ultimosTiempos.length > 0) {
+        const suma = ultimosTiempos.reduce((a, b) => a + b, 0);
+        prom = suma / ultimosTiempos.length;
+      }
+      
+      // Calculate final score
+      let finalScore = null;
+      if (porcentaje !== null && prom !== null && prom > 0 && resultados.length >= 10) {
+        finalScore = (porcentaje / prom) * 100;
+        
+        // Save session data
+        if (currentUser && jugador) {
+          const sessionData = {
+            accuracy: porcentaje,
+            averageTime: prom,
+            totalTime: (Date.now() - tiempoInicioCronometro) / 1000,
+            challenges: resultados.length
+          };
+          await saveUserSession(jugador, finalScore, sessionData);
+          
+          // Update display
+          showUserStats(jugador);
+        }
+        
+        alert(`🎮 Sesión finalizada!\n\n🎯 Score final: ${finalScore.toFixed(1)}\n⚡ Promedio: ${prom.toFixed(2)}s\n✅ Precisión: ${(porcentaje*100).toFixed(0)}%\n🔢 Retos completados: ${resultados.length}`);
+      } else {
+        alert(`🎮 Sesión finalizada!\n\nCompleta al menos 10 retos para obtener un score.`);
+      }
+      
+      // Reset UI
+      document.getElementById('start-btn').style.display = 'inline-block';
+      document.getElementById('stop-btn').style.display = 'none';
+      ocultarCruz();
+      
+      // Clear mobile mode if active
+      document.body.classList.remove('mobile-game-active');
     }
 
     function elegirCeldaPorErrores() {
@@ -1983,6 +2040,7 @@
       highScore = null;
       // Limpia la interfaz
       document.getElementById('start-btn').style.display = '';
+      document.getElementById('stop-btn').style.display = 'none';
       document.getElementById('cronometro').textContent = "⏱️ Total time: 00:00";
       document.getElementById('ultimo-tiempo').textContent = "⚡ Last challenge: -- s";
       document.getElementById('feedback').textContent = "";
