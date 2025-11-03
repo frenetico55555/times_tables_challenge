@@ -228,6 +228,19 @@
       box-shadow: 0 8px 25px rgba(56, 239, 125, 0.5);
     }
     
+    #stop-btn {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+      color: white;
+      font-size: clamp(1em, 1.3vw, 1.2em);
+      padding: clamp(12px, 1.5vh, 14px) clamp(24px, 2.5vw, 32px);
+      display: none;
+    }
+    
+    #stop-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 8px 25px rgba(255, 107, 107, 0.5);
+    }
+    
     
     
     a button {
@@ -880,6 +893,7 @@
           </div>
         </div>
   <button id="start-btn" onclick="iniciarJuego()">🚀 Start game session</button>
+        <button id="stop-btn" onclick="detenerSesion()">⏹️ Stop session</button>
         <!-- Removed Send Suggestions button -->
         <span id="feedback"></span>
       </div>
@@ -1567,6 +1581,7 @@
       
       // Start the game
       document.getElementById('start-btn').style.display = 'none';
+      document.getElementById('stop-btn').style.display = 'block';
       juegoIniciado = true;
       iniciarCronometro();
       
@@ -1588,6 +1603,73 @@
       }
       
       nuevoReto();
+    }
+
+    function detenerSesion() {
+      // Stop the game and reset to initial state
+      juegoIniciado = false;
+      
+      // Stop the timer
+      detenerCronometro();
+      tiempoInicioCronometro = null;
+      
+      // Clear any active input or timeout
+      if (timeoutReto) {
+        clearTimeout(timeoutReto);
+        timeoutReto = null;
+      }
+      esperando = false;
+      
+      // Reset game state variables
+      tiempoInicio = null;
+      tiempos = [];
+      resultados = [];
+      filaActual = null;
+      colActual = null;
+      highScore = null;
+      
+      // Reset special repetition sequence variables
+      repeticionActiva = false;
+      secuenciaRepeticion = [];
+      indiceSecuencia = 0;
+      celdaProblematica = null;
+      
+      // Clear the game board
+      limpiarMatriz();
+      ocultarCruz();
+      
+      // Remove any input fields from the table
+      document.querySelectorAll('#matriz td input').forEach(input => {
+        input.remove();
+      });
+      
+      // Reset all stats displays
+      document.getElementById('cronometro').textContent = "⏱️ Total session time: 00:00";
+      document.getElementById('ultimo-tiempo').textContent = "⚡ Last trial: -- s";
+      document.getElementById('promedio-tiempo').textContent = "📊 Average delay / trial (last 10): -- s";
+      document.getElementById('porcentaje-correctas').textContent = "✅ Precision (last 10): -- % correct";
+      document.getElementById('score').textContent = "🎯 Last 10 trials score";
+      document.getElementById('session-highscore').textContent = "🏆 Current session highest score";
+      if (currentUser && currentUser.personalBest) {
+        document.getElementById('highscore').textContent = `🏆 All sessions higher score: ${currentUser.personalBest.toFixed(1)}`;
+      } else {
+        document.getElementById('highscore').textContent = "🏆 All sessions higher score";
+      }
+      
+      // Reset mobile challenge display
+      const mobileQuestion = document.getElementById('mobile-challenge-question');
+      const mobileInput = document.getElementById('mobile-challenge-input');
+      const mobileFeedback = document.getElementById('mobile-feedback');
+      if (mobileQuestion) mobileQuestion.textContent = "? × ? = ?";
+      if (mobileInput) mobileInput.value = "";
+      if (mobileFeedback) mobileFeedback.textContent = "";
+      
+      // Remove mobile-game-active class
+      document.body.classList.remove('mobile-game-active');
+      
+      // Show start button, hide stop button
+      document.getElementById('start-btn').style.display = 'block';
+      document.getElementById('stop-btn').style.display = 'none';
     }
 
     function elegirCeldaPorErrores() {
